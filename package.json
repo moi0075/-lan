@@ -1,0 +1,44 @@
+{
+  "name": "elan-learning",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run",
+    "data:refresh": "node scripts/build-data.mjs",
+    "test:e2e": "playwright test",
+    "format": "prettier --write src scripts e2e *.ts *.json *.html README.md",
+    "audit:a11y": "node scripts/audit-accessibility.mjs",
+    "screenshots": "node scripts/capture-preview.mjs"
+  },
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/manrope": "^5.2.8",
+    "d3-geo": "^3.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.51.0",
+    "@types/d3-geo": "^3.1.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "prettier": "^3.9.7",
+    "topojson-simplify": "^3.0.3",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "vitest": "^4.1.11"
+  }
+}

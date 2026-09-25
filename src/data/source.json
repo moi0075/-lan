@@ -1,0 +1,10 @@
+{
+  "retrievedAt": "2026-09-17",
+  "countriesSource": "https://raw.githubusercontent.com/restcountries/restcountries/master/src/main/resources/countriesV3.1.json",
+  "sha256": "8209daa9fd26e842e84992739dfbfb272566b60357a6ee760955bb4e9f2cc18e",
+  "mapSource": "https://github.com/topojson/world-atlas",
+  "mapVersion": "2.0.2",
+  "simplification": 0.2,
+  "scope": "193 membres de l’ONU + Vatican, Palestine, Kosovo et Taïwan. Les territoires dépendants ne font pas partie du parcours. Frontières de facto Natural Earth ; représentation sans prise de position politique.",
+  "populationNote": "Instantané REST Countries : années de référence variables selon les pays. Le classement suit les populations de ce jeu de données, et non un compteur en temps réel."
+}
