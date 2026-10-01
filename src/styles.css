@@ -3965,16 +3965,6 @@ select:focus-visible {
   opacity: 0.6;
   cursor: default;
 }
-.account-identity {
-  display: grid;
-  gap: 5px;
-  overflow-wrap: anywhere;
-}
-.account-identity span {
-  color: #64716b;
-  font-size: 13px;
-  line-height: 1.7;
-}
 .account-sync {
   display: flex;
   align-items: center;

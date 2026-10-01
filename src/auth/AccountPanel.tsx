@@ -66,10 +66,6 @@ export default function AccountPanel({
         </form>
       ) : account.user ? (
         <>
-          <div className="account-identity">
-            <b>{account.user.user_metadata.full_name || "Mon compte"}</b>
-            <span>{account.user.email}</span>
-          </div>
           <div className="account-sync" role="status">
             {account.status === "saved" ? (
               <Cloud size={20} />

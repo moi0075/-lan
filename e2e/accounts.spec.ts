@@ -134,7 +134,13 @@ test("account cache and cloud are separate from guests, restores guest on logout
   );
   await page.reload();
   await page.getByRole("button", { name: "Mon compte", exact: true }).click();
-  await expect(page.getByText("Test account", { exact: true })).toBeVisible();
+  await expect(page.getByText("Test account", { exact: true })).toHaveCount(0);
+  await expect(
+    page.getByText("test@example.test", { exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Pseudo", { exact: true })).toHaveValue(
+    "Joueur test",
+  );
   await expect(
     page.getByRole("button", { name: "Récupérer mon meilleur parcours" }),
   ).toHaveCount(0);
@@ -227,7 +233,10 @@ test("email password signs in and signs out without profile or backup tools", as
   await page.getByRole("button", { name: "Mon compte", exact: true }).click();
   await expect(
     page.getByText("test@example.test", { exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Pseudo", { exact: true })).toHaveValue(
+    "Joueur test",
+  );
   await expect(
     page.getByRole("button", { name: /Exporter|Importer|Gérer les profils/ }),
   ).toHaveCount(0);
