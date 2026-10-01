@@ -133,3 +133,10 @@ Les parcours couvrent les erreurs et corrections, les indices, la persistance ap
 ## Hébergement
 
 Production : [Élan](https://gamelearning-snowy.vercel.app). Le projet Vercel `gamelearning` utilise Node.js 22, `npm ci`, `npm run build` et `dist/`. Les deux variables publiques Supabase sont configurées pour production et preview ; les secrets des fournisseurs restent dans Supabase. Voir [le rapport de sécurité et de publication](SECURITY-AUDIT.md) pour les contrôles et les limites restantes.
+
+
+### Mises à jour depuis GitHub
+
+Le dépôt [moi0075/-lan](https://github.com/moi0075/-lan) est relié au projet Vercel `gamelearning`, avec `main` comme branche de production. Les modifications doivent être enregistrées dans Git puis poussées sur `main` pour déclencher une construction et une publication automatiques. Une modification restée sur l’ordinateur ne met pas à jour le site en ligne.
+
+Les variables Supabase de production sont définies dans Vercel. Le fichier `.env.local` reste exclu du dépôt ; `.env.example` fournit uniquement le modèle de configuration.
