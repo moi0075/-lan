@@ -46,7 +46,7 @@ test("themes lead to separate games and preserve both sessions on return", async
   await page.getByRole("button", { name: "Commencer · Placer" }).click();
   await expect(page.locator(".app-shell")).toHaveClass(/is-focused/);
   await page.locator('[data-country="IND"]').click();
-  await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
   await page
     .getByRole("navigation", { name: "Fil d’Ariane" })
     .getByRole("button", { name: "Le monde" })
@@ -57,7 +57,7 @@ test("themes lead to separate games and preserve both sessions on return", async
   await page.getByRole("button", { name: "Commencer · Nommer" }).click();
   await page.getByRole("textbox").fill("indea");
   await page.getByRole("textbox").press("Enter");
-  await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
   await page
     .getByRole("navigation", { name: "Fil d’Ariane" })
     .getByRole("button", { name: "Le monde" })
@@ -65,7 +65,12 @@ test("themes lead to separate games and preserve both sessions on return", async
   await page.reload();
   await page.getByRole("button", { name: "Reprendre · Placer" }).click();
   await expect(page.getByText("Bien joué, c’est ici !")).toBeVisible();
-  await page.getByRole("button", { name: "Nommer", exact: true }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
+  await page
+    .getByRole("navigation", { name: "Fil d’Ariane" })
+    .getByRole("button", { name: "Le monde" })
+    .click();
+  await page.getByRole("button", { name: "Reprendre · Nommer" }).click();
   await expect(
     page.getByText("Presque ! Le nom est à corriger."),
   ).toBeVisible();
@@ -81,6 +86,11 @@ test("saved learning is reflected in global and per-game progress and optional s
   page,
 }) => {
   await page.goto("/");
+  await expect
+    .poll(() =>
+      page.evaluate(() => !!localStorage.getItem("atlas-learning-v1")),
+    )
+    .toBe(true);
   const store: Store = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("atlas-learning-v1")!),
   );
@@ -159,7 +169,7 @@ test("saved learning is reflected in global and per-game progress and optional s
   await page
     .getByRole("button", { name: "Voir le détail · Nommer les pays" })
     .click();
-  await expect(page).toHaveURL(/#\/game-progress$/);
+  await expect(page).toHaveURL(/#\/game-progress\/world-name$/);
   await expect(page.locator(".progress-mode")).toContainText("Nommer");
   await expect(page.locator(".near-miss-total")).toContainText(
     "1 réponses proches",
@@ -178,7 +188,7 @@ test("saved learning is reflected in global and per-game progress and optional s
   ).toBeVisible();
   await naming.getByText("Statistiques du jeu").click();
   await naming.getByRole("button", { name: "Voir le suivi par pays" }).click();
-  await expect(page).toHaveURL(/#\/game-progress$/);
+  await expect(page).toHaveURL(/#\/game-progress\/world-name$/);
 });
 
 test("the library and game cards remain usable on a phone", async ({
@@ -205,7 +215,7 @@ test("the library and game cards remain usable on a phone", async ({
   });
   await page.getByRole("button", { name: "Commencer · Nommer" }).click();
   await expect(page.getByRole("textbox")).toBeVisible();
-  await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
   await page
     .getByRole("button", { name: "Ma progression", exact: true })
     .click();

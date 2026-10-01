@@ -29,8 +29,7 @@ test("Space advances once after a map answer", async ({ page }) => {
 test("Space types normally in a country name, then advances after feedback", async ({
   page,
 }) => {
-  await page.goto("/#/play");
-  await page.getByRole("button", { name: "Nommer", exact: true }).click();
+  await page.goto("/#/play/world-name");
   const input = page.getByRole("textbox", {
     name: "Nommez le pays surligné en violet.",
   });
@@ -55,16 +54,27 @@ test("Space types normally in a country name, then advances after feedback", asy
   ).toBe(1);
 });
 
-test("Space advances on the dashboard and preserves another focused button", async ({
+test("Space outside the game preserves the question and remains available on other controls", async ({
   page,
 }) => {
   await page.goto("/#/play");
   await page.locator('[data-country="IND"]').click();
-  await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
+  await page.keyboard.press("Space");
+  await expect(
+    page.getByRole("heading", { name: "Le monde", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".world-map")).toHaveCount(0);
+  await page.getByRole("button", { name: "Reprendre · Placer" }).click();
+  await expect(page.getByText("Bien joué, c’est ici !")).toBeVisible();
+  await page.locator(".world-map").click({ position: { x: 1, y: 1 } });
   await page.keyboard.press("Space");
   await expect(page.getByRole("heading", { name: "Chine ?" })).toBeVisible();
   await page.locator('[data-country="CHN"]').click();
-  const fullscreen = page.getByRole("button", { name: "Jouer en plein écran" });
+  const fullscreen = page.getByRole("button", {
+    name: "Plein écran",
+    exact: true,
+  });
   await fullscreen.focus();
   await page.keyboard.press("Space");
   await expect(page.locator(".focus-fullscreen")).toHaveAttribute(

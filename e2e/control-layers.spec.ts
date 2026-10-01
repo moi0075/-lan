@@ -56,7 +56,8 @@ for (const viewport of [
     await page.goto("/#/play");
     for (const answer of ["IND", "BRA"]) {
       const enter = page.getByRole("button", {
-        name: /^(Plein écran|Jouer en plein écran)$/,
+        name: "Plein écran",
+        exact: true,
       });
       await enter.click();
       await expect
@@ -98,7 +99,7 @@ for (const viewport of [
       await expect
         .poll(() => page.evaluate(() => !!document.fullscreenElement))
         .toBe(true);
-      await checkHoverAndClick(page, ".focus-exit", "Quitter le mode jeu");
+      await checkHoverAndClick(page, ".focus-exit", "Quitter le jeu");
       await expect(page.locator(".app-shell")).not.toHaveClass(/is-focused/);
       await expect
         .poll(() => page.evaluate(() => !!document.fullscreenElement))
@@ -106,6 +107,9 @@ for (const viewport of [
       expect(
         await page.evaluate(() => localStorage.getItem("atlas-learning-v1")),
       ).toBe(progress);
+      await page
+        .getByRole("button", { name: "Reprendre le jeu", exact: true })
+        .click();
       await page
         .getByRole("button", { name: "Recentrer la carte", exact: true })
         .click();

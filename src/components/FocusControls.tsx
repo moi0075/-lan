@@ -18,10 +18,10 @@ export default function FocusControls({
         type="button"
         className="game-control focus-exit"
         onClick={onExit}
-        aria-label="Quitter le mode jeu"
+        aria-label="Quitter le jeu"
       >
         <ArrowLeft size={17} />
-        <span>Quitter le mode jeu</span>
+        <span>Quitter le jeu</span>
       </button>
       <button
         type="button"

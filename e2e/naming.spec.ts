@@ -7,8 +7,7 @@ async function active(page: Page) {
   });
 }
 async function nameMode(page: Page) {
-  await page.goto("/#/play");
-  await page.getByRole("button", { name: "Nommer", exact: true }).click();
+  await page.goto("/#/play/world-name");
   await expect(
     page.getByRole("textbox", { name: "Nommez le pays surligné en violet." }),
   ).toBeVisible();
@@ -74,14 +73,14 @@ test("naming keeps the answer hidden, supports keyboard play and preserves indep
   await expect(
     page.getByRole("button", { name: "Pays suivant", exact: true }),
   ).toBeFocused();
-  await page.getByRole("button", { name: "Placer", exact: true }).click();
+  await page.goto("/#/play/world-place");
   await expect(
     page.getByRole("heading", { name: "Inde ?", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".naming-pin")).toHaveCount(0);
-  await page.getByRole("button", { name: "Nommer", exact: true }).click();
+  await page.goto("/#/play/world-name");
   await expect(page.getByText("Exactement, bien joué !")).toBeVisible();
-  await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
+  await page.getByRole("button", { name: "Quitter le jeu" }).click();
   await page
     .getByRole("button", { name: "Ma progression", exact: false })
     .click();
@@ -180,8 +179,12 @@ for (const viewport of [
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.getByRole("button", { name: "Quitter le mode jeu" }).click();
-    await expect(page.locator(".question-panel.naming-question")).toBeVisible();
+    await page.getByRole("button", { name: "Quitter le jeu" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Le monde", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("textbox")).toHaveCount(0);
+    await page.getByRole("button", { name: "Reprendre · Nommer" }).click();
     await page
       .getByRole("button", { name: "Pays suivant", exact: true })
       .click();

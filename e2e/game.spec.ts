@@ -3,6 +3,11 @@ import { test, expect, type Page } from "@playwright/test";
 import countries from "../src/data/countries.json" with { type: "json" };
 test.beforeAll(() => mkdirSync("artifacts", { recursive: true }));
 async function state(page: Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => !!localStorage.getItem("atlas-learning-v1")),
+    )
+    .toBe(true);
   return await page.evaluate(() =>
     JSON.parse(localStorage.getItem("atlas-learning-v1")!),
   );
@@ -21,7 +26,7 @@ async function clickCountry(page: Page, id: string) {
   );
 }
 async function dashboard(page: Page) {
-  const exit = page.getByRole("button", { name: "Quitter le mode jeu" });
+  const exit = page.getByRole("button", { name: "Quitter le jeu" });
   if (await exit.isVisible()) await exit.click();
 }
 test("immediate correction, guided answer, progress and persistence", async ({
@@ -139,38 +144,24 @@ test("microstate placement is playable using its accessible marker", async ({
   await expect(page.getByText("Bien joué, c’est ici !")).toBeVisible();
   await expect(page.locator(".zoom-controls")).toContainText("100%");
 });
-test("profiles remain isolated; export and validated import preserve existing progress", async ({
+test("settings retain progress without legacy profiles or backup controls", async ({
   page,
 }) => {
   await page.goto("/#/play");
   await clickCountry(page, "IND");
   await dashboard(page);
-  await page.getByRole("button", { name: "Changer de profil" }).click();
-  await page.getByLabel("Un nouvel explorateur ?").fill("Camille");
-  await page.getByRole("button", { name: "Créer", exact: true }).click();
-  expect((await active(page)).name).toBe("Camille");
-  expect((await active(page)).learning.attempts).toBe(0);
-  await dashboard(page);
+  const before = await active(page);
   await page.getByRole("button", { name: "Réglages", exact: true }).click();
-  const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Exporter", exact: true }).click();
-  const download = await downloadEvent;
-  await download.saveAs("artifacts/test-backup.json");
-  const prior = await state(page);
-  await page.locator('input[type="file"]').setInputFiles({
-    name: "invalid.json",
-    mimeType: "application/json",
-    buffer: Buffer.from('{"version":999}'),
-  });
-  await expect(page.getByRole("alert")).toContainText("invalide");
-  expect((await state(page)).profiles.length).toBe(2);
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles("artifacts/test-backup.json");
-  await expect.poll(async () => (await state(page)).profiles.length).toBe(4);
-  expect((await state(page)).profiles.slice(0, 2)).toEqual(prior.profiles);
+  await page.getByLabel("Nom affiché").fill("Camille");
+  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
+  expect((await active(page)).name).toBe("Camille");
+  expect((await active(page)).learning).toEqual(before.learning);
+  await expect(
+    page.getByRole("button", { name: /Exporter|Importer|Gérer les profils/ }),
+  ).toHaveCount(0);
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
 });
-test("mobile layout, controls, profile settings and navigation", async ({
+test("mobile layout, controls, account settings and navigation", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -194,11 +185,16 @@ test("mobile layout, controls, profile settings and navigation", async ({
   await clickCountry(page, "IND");
   await expect(page.getByText("Bien joué, c’est ici !")).toBeVisible();
   await dashboard(page);
-  await page.getByRole("button", { name: "Changer de profil" }).tap();
-  await page.getByRole("button", { name: "Réglages et sauvegarde" }).tap();
+  await page
+    .getByRole("button", { name: "Ouvrir la connexion", exact: true })
+    .tap();
+  await expect(page.getByLabel("Adresse e-mail")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Continuer avec Google" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Exporter", exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Fermer", exact: true }).tap();
   await page.getByRole("button", { name: "Ma progression", exact: true }).tap();
   await expect(
@@ -244,9 +240,8 @@ test("focused play keeps questions above the map and native fullscreen preserves
     .toBe(false);
   await expect(page.locator(".sidebar")).toBeVisible();
   expect((await active(page)).learning.attempts).toBe(1);
-  await page
-    .getByRole("button", { name: "Jouer en plein écran", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reprendre · Placer" }).click();
+  await page.getByRole("button", { name: "Plein écran", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Chine ?" })).toBeVisible();
   await page
     .getByRole("button", { name: "Réduire le plein écran", exact: true })

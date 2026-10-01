@@ -1,11 +1,14 @@
+import AccountPanel, { type FormMode } from "./auth/AccountPanel";
+import PseudoEditor from "./auth/PseudoEditor";
+import { useAccount } from "./auth/AccountContext";
 import { MiniProgress, CountryFlag, Stat } from "./components/LearningUI";
 import { useEffect, useRef, useState } from "react";
 import FocusQuestion from "./components/FocusQuestion";
 import FocusControls from "./components/FocusControls";
 import NamingQuestion from "./components/NamingQuestion";
-import ModeSwitch from "./components/ModeSwitch";
 import LearningLibrary from "./components/LearningLibrary";
 import GeneralProgress from "./components/GeneralProgress";
+import Leaderboard from "./components/Leaderboard";
 import BrandMark from "./components/BrandMark";
 import {
   allGames,
@@ -16,42 +19,31 @@ import {
 import { summarizeProgress } from "./engine/progressSummary";
 import { useAppNavigation, type Page } from "./useAppNavigation";
 import { evaluateCountryName } from "./engine/nameAnswer";
-import { focusAfterKeyboard } from "./components/focusAfterKeyboard";
 import { candidateCountries } from "./engine/hints";
 import {
-  ArrowDownToLine,
-  Expand,
   ArrowRight,
   ArrowUpRight,
   BookOpen,
   Check,
-  ChevronDown,
   ChevronRight,
   CircleHelp,
-  Compass,
   Flame,
   Globe2,
   GraduationCap,
   Layers3,
-  Lightbulb,
   LockKeyhole,
-  MapPin,
-  Plus,
   Play,
   Search,
   Settings2,
-  ShieldCheck,
   Sparkles,
   Target,
   TrendingUp,
   Trophy,
-  Upload,
-  Users,
   Zap,
 } from "lucide-react";
 import WorldMap from "./components/WorldMap";
 import Modal from "./components/Modal";
-import { countries, countryById, flag, population } from "./data/catalog";
+import { countries, countryById, population } from "./data/catalog";
 import source from "./data/source.json";
 import {
   activityStreak,
@@ -61,24 +53,21 @@ import {
   statusOf,
 } from "./engine/learning";
 import {
-  downloadStore,
+  GUEST_STORAGE_KEY,
   loadStore,
-  makeProfile,
-  parseStore,
   saveStore,
   startSession,
   recordSessionAnswer,
   nextSessionQuestion,
   progressFor,
   changeGameMode,
-  type GameMode,
   type ProgressTrack,
   type Answer,
   type Profile,
   type Store,
 } from "./engine/storage";
 
-type Dialog = "help" | "profiles" | "settings" | null;
+type Dialog = "help" | "settings" | "account" | null;
 const reasons = {
   discovery: "Nouvelle découverte",
   practice: "On consolide",
@@ -91,9 +80,21 @@ const statusLabels = {
   review: "À renforcer",
   mastered: "Acquis",
 };
-function App() {
+function App({
+  storageKey = GUEST_STORAGE_KEY,
+  initialStore,
+  onStoreChange,
+}: {
+  storageKey?: string;
+  initialStore?: Store;
+  onStoreChange?: (store: Store) => void;
+}) {
+  const account = useAccount();
   const initial = useRef<ReturnType<typeof loadStore> | null>(null);
-  if (!initial.current) initial.current = loadStore();
+  if (!initial.current)
+    initial.current = initialStore
+      ? { store: initialStore }
+      : loadStore(storageKey);
   const [store, setStore] = useState<Store>(() => {
     const s = initial.current!.store;
     return {
@@ -108,18 +109,18 @@ function App() {
   const [storageError, setStorageError] = useState(initial.current.error || "");
   const { route, go } = useAppNavigation();
   const page = route.page;
-  const [focusMode, setFocusMode] = useState(true);
   const [nativeFullscreen, setNativeFullscreen] = useState(false);
   const shell = useRef<HTMLDivElement>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [accountForm, setAccountForm] = useState<FormMode>("login");
+  useEffect(() => {
+    if (account.recovering) setDialog("account");
+  }, [account.recovering]);
   const [toast, setToast] = useState("");
-  const [profileName, setProfileName] = useState("");
   const [rename, setRename] = useState("");
   const [query, setQuery] = useState("");
   const [continent, setContinent] = useState("Tous les continents");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [importError, setImportError] = useState("");
-  const fileInput = useRef<HTMLInputElement>(null);
   const profile = store.profiles.find((p) => p.id === store.activeId)!;
   const overall = summarizeProgress(
     allGames.map((game) => ({
@@ -131,21 +132,15 @@ function App() {
   const menuTopic = menuTheme?.topics.find(
     (topic) => topic.id === route.topicId,
   );
-  const mode = profile.mode || "place";
-  const progress = progressFor(profile);
+  const routeGame = allGames.find((game) => game.id === route.gameId);
+  const mode = routeGame?.mode || profile.mode || "place";
+  const progress = progressFor(changeGameMode(profile, mode));
   const learning = progress.learning;
   const session = progress.session || startSession(progress);
   const target = countryById.get(session.current.id)!;
-  const focused = focusMode && page === "play";
+  const focused = page === "play";
   const acquired = countries.filter((c) => isMastered(learning.memory[c.id]));
   const discovered = countries.filter((c) => learning.memory[c.id]?.attempts);
-  const learningCount = discovered.length - acquired.length;
-  const currentBatchStart = Math.floor((learning.unlocked - 1) / 5) * 5;
-  const batch = countries.slice(currentBatchStart, learning.unlocked);
-  const batchAcquired = batch.filter(
-    (c) => learning.memory[c.id]?.acquired,
-  ).length;
-  const nextBatch = countries.slice(learning.unlocked, learning.unlocked + 5);
   const streak = activityStreak(learning.daily);
   const precision = learning.attempts
     ? Math.round((learning.correct / learning.attempts) * 100)
@@ -156,14 +151,28 @@ function App() {
   const selected = selectedId ? countryById.get(selectedId) : undefined;
   const notify = (message: string) => setToast(message);
   useEffect(() => {
+    if (page !== "play" && page !== "game-progress") return;
+    if (!route.gameId) {
+      const game = allGames.find((item) => item.mode === mode)!;
+      go({ page, gameId: game.id }, true);
+    }
+    if (
+      (profile.mode || "place") !== mode ||
+      (mode === "name" && !profile.naming)
+    ) {
+      updateProfile((p) => changeGameMode(p, mode));
+    }
+  }, [page, route.gameId, profile.id, profile.mode, mode]);
+  useEffect(() => {
     try {
-      saveStore(store);
+      saveStore(store, storageKey);
+      onStoreChange?.(store);
     } catch {
       setStorageError(
-        "La sauvegarde locale est indisponible. Exportez votre progression depuis les réglages avant de fermer.",
+        "La sauvegarde locale est indisponible. Vos dernières réponses ne pourront pas être conservées sur cet appareil.",
       );
     }
-  }, [store]);
+  }, [store, storageKey, onStoreChange]);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(""), 5000);
@@ -187,8 +196,7 @@ function App() {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !document.fullscreenElement)
-        setFocusMode(false);
+      if (event.key === "Escape" && !document.fullscreenElement) leaveGame();
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -230,7 +238,6 @@ function App() {
       await document.exitFullscreen().catch(() => {});
       return;
     }
-    setFocusMode(true);
     try {
       if (!shell.current?.requestFullscreen)
         throw new Error("Fullscreen unavailable");
@@ -247,15 +254,16 @@ function App() {
       profiles: s.profiles.map((p) => (p.id === s.activeId ? fn(p) : p)),
     }));
   }
-  function updateProgress(fn: (p: ProgressTrack) => ProgressTrack) {
-    updateProfile((p) =>
-      p.mode === "name"
-        ? { ...p, naming: fn(progressFor(p)) }
-        : { ...p, ...fn(p) },
-    );
+  function changePseudo(name: string) {
+    updateProfile((p) => ({ ...p, name }));
   }
-  function switchMode(next: GameMode) {
-    updateProfile((p) => changeGameMode(p, next));
+  function updateProgress(fn: (p: ProgressTrack) => ProgressTrack) {
+    updateProfile((p) => {
+      const active = changeGameMode(p, mode);
+      return mode === "name"
+        ? { ...active, naming: fn(progressFor(active)) }
+        : { ...active, ...fn(active) };
+    });
   }
   function submit(selectedCountry: string | null, typedName?: string) {
     if (feedback) return;
@@ -308,34 +316,33 @@ function App() {
       },
     }));
   }
+  function leaveGame() {
+    go({ page: "library", themeId: "geography", topicId: "world" });
+  }
   function navigate(next: Page) {
-    if (next === "play") setFocusMode(true);
-    go({ page: next });
+    const gameId =
+      next === "play" || next === "game-progress"
+        ? routeGame?.id || allGames.find((game) => game.mode === mode)!.id
+        : undefined;
+    go({ page: next, gameId });
     setQuery("");
   }
   function openLibraryGame(
     game: LearningGame,
     destination: "play" | "game-progress",
   ) {
-    switchMode(game.mode);
-    navigate(destination);
+    updateProfile((p) => changeGameMode(p, game.mode));
+    go({ page: destination, gameId: game.id });
+    setQuery("");
+  }
+  function openAccount() {
+    account.clearError();
+    setAccountForm("login");
+    setDialog("account");
   }
   function openSettings() {
     setRename(profile.name);
-    setImportError("");
     setDialog("settings");
-  }
-  function switchProfile(id: string) {
-    setStore((s) => ({
-      ...s,
-      activeId: id,
-      profiles: s.profiles.map((p) =>
-        p.id === id && !p.session ? { ...p, session: startSession(p) } : p,
-      ),
-    }));
-    setDialog(null);
-    navigate("library");
-    setSelectedId(null);
   }
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -365,7 +372,7 @@ function App() {
       {focused && (
         <FocusControls
           fullscreen={nativeFullscreen}
-          onExit={() => setFocusMode(false)}
+          onExit={leaveGame}
           onToggleFullscreen={toggleFullscreen}
         />
       )}
@@ -411,6 +418,14 @@ function App() {
             <TrendingUp size={19} />
             <span>Ma progression</span>
           </button>
+          <button
+            className={`nav-item ${page === "leaderboard" ? "active" : ""}`}
+            onClick={() => navigate("leaderboard")}
+            aria-label="Classement"
+          >
+            <Trophy size={19} />
+            <span>Classement</span>
+          </button>
         </nav>
         <div className="sidebar-journey">
           <div className="journey-icon">
@@ -448,23 +463,16 @@ function App() {
             <Settings2 size={18} />
             <span>Réglages</span>
           </button>
-          <button
-            className="profile-switch"
-            onClick={() => {
-              setProfileName("");
-              setDialog("profiles");
-            }}
-          >
+          <button className="account-summary" onClick={openAccount}>
             <span className="avatar">
               {profile.name.slice(0, 1).toUpperCase()}
             </span>
-            <span className="profile-copy">
+            <span className="account-summary-copy">
               <b>{profile.name}</b>
               <small>
                 Mon parcours · Niveau {Math.floor(overall.xp / 150) + 1}
               </small>
             </span>
-            <ChevronDown size={15} />
           </button>
         </div>
       </aside>
@@ -482,7 +490,10 @@ function App() {
             >
               Thèmes
             </button>
-            {((page !== "library" && page !== "progress") || menuTheme) && (
+            {((page !== "library" &&
+              page !== "progress" &&
+              page !== "leaderboard") ||
+              menuTheme) && (
               <>
                 <ChevronRight size={13} />
                 <button
@@ -497,7 +508,10 @@ function App() {
                 </button>
               </>
             )}
-            {((page !== "library" && page !== "progress") || menuTopic) && (
+            {((page !== "library" &&
+              page !== "progress" &&
+              page !== "leaderboard") ||
+              menuTopic) && (
               <>
                 <ChevronRight size={13} />
                 <button
@@ -519,9 +533,11 @@ function App() {
                 <b>
                   {page === "progress"
                     ? "Ma progression"
-                    : page === "atlas"
-                      ? "Pays du monde"
-                      : `${page === "game-progress" ? "Suivi · " : ""}${mode === "place" ? "Placer" : "Nommer"}`}
+                    : page === "leaderboard"
+                      ? "Classement"
+                      : page === "atlas"
+                        ? "Pays du monde"
+                        : `${page === "game-progress" ? "Suivi · " : ""}${mode === "place" ? "Placer" : "Nommer"}`}
                 </b>
               </>
             )}
@@ -534,11 +550,19 @@ function App() {
                 jour{activityStreak(overall.daily) > 1 ? "s" : ""} de suite
               </span>
             </span>
+            <button
+              className="account-nav button-secondary"
+              onClick={openAccount}
+            >
+              {account.user ? "Mon compte" : "Se connecter"}
+            </button>
             <span className="topbar-divider" />
             <button
               className="avatar avatar-small"
-              onClick={() => setDialog("profiles")}
-              aria-label="Changer de profil"
+              onClick={openAccount}
+              aria-label={
+                account.user ? "Ouvrir mon compte" : "Ouvrir la connexion"
+              }
             >
               {profile.name.slice(0, 1).toUpperCase()}
             </button>
@@ -548,9 +572,6 @@ function App() {
           {storageError && (
             <div className="storage-alert" role="alert">
               {storageError}
-              <button onClick={() => downloadStore(store)}>
-                Exporter mes progrès
-              </button>
             </div>
           )}
           {page === "library" && (
@@ -563,6 +584,13 @@ function App() {
               onOpenAtlas={() => navigate("atlas")}
             />
           )}
+          {page === "leaderboard" && (
+            <Leaderboard
+              onSignIn={openAccount}
+              onNameChange={changePseudo}
+              profileName={profile.name}
+            />
+          )}
           {page === "progress" && (
             <GeneralProgress
               profile={profile}
@@ -571,32 +599,24 @@ function App() {
               onPlay={(game) => openLibraryGame(game, "play")}
             />
           )}
-          {(page === "play" ||
-            page === "game-progress" ||
-            page === "atlas") && (
+          {(page === "game-progress" || page === "atlas") && (
             <div className="page-heading">
               <div>
                 <div className="eyebrow">
                   <span />{" "}
-                  {page === "play"
-                    ? "LE GOÛT DE LA DÉCOUVERTE"
-                    : page === "game-progress"
-                      ? "CHAQUE PETIT PAS COMPTE"
-                      : "VOTRE CARNET DU MONDE"}
+                  {page === "game-progress"
+                    ? "CHAQUE PETIT PAS COMPTE"
+                    : "VOTRE CARNET DU MONDE"}
                 </div>
                 <h1>
-                  {page === "play"
-                    ? "Un pays à la fois."
-                    : page === "game-progress"
-                      ? "Le chemin parcouru."
-                      : "197 pays. Un seul monde."}
+                  {page === "game-progress"
+                    ? "Le chemin parcouru."
+                    : "197 pays. Un seul monde."}
                 </h1>
                 <p>
-                  {page === "play"
-                    ? "Explorez le monde. Faites des erreurs. Retenez pour longtemps."
-                    : page === "game-progress"
-                      ? `${profile.name}, voici les connaissances que vous construisez.`
-                      : "Un voyage des pays les plus peuplés aux plus petits États."}
+                  {page === "game-progress"
+                    ? `${profile.name}, voici les connaissances que vous construisez.`
+                    : "Un voyage des pays les plus peuplés aux plus petits États."}
                 </p>
               </div>
               <div className="heading-badge">
@@ -610,365 +630,56 @@ function App() {
             </div>
           )}
           {page === "play" && (
-            <>
-              <section
-                className="game-card"
-                aria-label={
-                  mode === "place"
-                    ? "Jeu de placement des pays"
-                    : "Jeu de nommage des pays"
-                }
-              >
-                {!focused && (
-                  <div className="game-toolbar">
-                    <div>
-                      <span className="section-icon">
-                        <Compass size={19} />
-                      </span>
-                      <b>Votre expédition</b>
-                      <span className="chapter-label">
-                        Étape {Math.ceil(learning.unlocked / 5)}
-                      </span>
-                    </div>
-                    <div className="question-progress">
-                      <span>
-                        Question{" "}
-                        <b>{String(currentQuestion).padStart(2, "0")}</b>
-                      </span>
-                      <div className="question-ticks">
-                        {Array.from({ length: 10 }, (_, i) => (
-                          <i
-                            key={i}
-                            className={
-                              i < session.answers.length
-                                ? session.answers[i].correct
-                                  ? "done"
-                                  : "error"
-                                : i === session.answers.length
-                                  ? "current"
-                                  : ""
-                            }
-                          />
-                        ))}
-                      </div>
-                      <button
-                        className="focus-fullscreen"
-                        onClick={toggleFullscreen}
-                        aria-label="Jouer en plein écran"
-                      >
-                        <Expand size={16} />
-                        <span>Jouer en plein écran</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <div className="game-body">
-                  {focused && mode === "place" && (
-                    <FocusQuestion
-                      country={target}
-                      question={currentQuestion}
-                      reason={reasons[session.current.reason]}
-                      feedback={feedback}
-                      hinted={session.hinted}
-                      streak={learning.memory[target.id]?.streak || 0}
-                      onHint={requestHint}
-                      onSkip={() => submit(null)}
-                      onNext={nextQuestion}
-                      onMode={switchMode}
-                    />
-                  )}
-                  {mode === "name" && (
-                    <NamingQuestion
-                      key={`${profile.id}-${currentQuestion}-${session.current.id}`}
-                      country={target}
-                      question={currentQuestion}
-                      feedback={feedback}
-                      streak={learning.memory[target.id]?.streak || 0}
-                      focused={focused}
-                      onMode={switchMode}
-                      onAnswer={(value) => submit(null, value)}
-                      onSkip={() => submit(null)}
-                      onNext={nextQuestion}
-                    />
-                  )}
-                  <WorldMap
-                    learning={learning}
-                    allowExpand={false}
+            <section
+              className="game-card"
+              aria-label={
+                mode === "place"
+                  ? "Jeu de placement des pays"
+                  : "Jeu de nommage des pays"
+              }
+            >
+              <div className="game-body">
+                {mode === "place" ? (
+                  <FocusQuestion
+                    country={target}
+                    question={currentQuestion}
+                    reason={reasons[session.current.reason]}
                     feedback={feedback}
-                    hintIds={session.hinted && !feedback ? session.hintIds : []}
-                    onSelect={(id) => {
-                      if (mode === "place") submit(id);
-                    }}
-                    namingTargetId={mode === "name" ? target.id : undefined}
-                    questionId={`${profile.id}-${currentQuestion}-${session.current.id}`}
+                    hinted={session.hinted}
+                    streak={learning.memory[target.id]?.streak || 0}
+                    onHint={requestHint}
+                    onSkip={() => submit(null)}
+                    onNext={nextQuestion}
                   />
-                  {!focused && mode === "place" && (
-                    <div
-                      className={`question-panel ${feedback ? "has-feedback" : ""}`}
-                    >
-                      <ModeSwitch mode={mode} onChange={switchMode} />
-                      <div className="question-eyebrow">
-                        <span
-                          className={`reason-dot ${session.current.reason}`}
-                        />
-                        {reasons[session.current.reason]}
-                      </div>
-                      <div className="question-prompt">
-                        <span className="country-flag-scene">
-                          <CountryFlag country={target} large />
-                          <i />
-                          <i />
-                        </span>
-                        <span className="prompt-label">
-                          {feedback
-                            ? "VOTRE DESTINATION"
-                            : "SAUREZ-VOUS PLACER…"}
-                        </span>
-                        <h2>
-                          {target.name}
-                          <span>{feedback ? "" : " ?"}</span>
-                        </h2>
-                        {!feedback && (
-                          <p>
-                            Cliquez sur son emplacement
-                            <br />
-                            sur la carte.
-                          </p>
-                        )}
-                      </div>
-                      {feedback ? (
-                        <div className="feedback-block" aria-live="polite">
-                          <div
-                            className={`feedback-title ${feedback.correct ? "correct" : "incorrect"}`}
-                          >
-                            {feedback.correct ? (
-                              <Check size={19} />
-                            ) : (
-                              <MapPin size={19} />
-                            )}
-                            <b>
-                              {feedback.correct
-                                ? feedback.assisted
-                                  ? "Bien trouvé, avec un indice !"
-                                  : "Bien joué, c’est ici !"
-                                : "Un nouveau repère à retenir."}
-                            </b>
-                          </div>
-                          <p>
-                            {feedback.correct
-                              ? feedback.assisted
-                                ? "La prochaine fois, essayez sans indice pour consolider ce pays."
-                                : "Un repère de plus dans votre mémoire."
-                              : (feedback.selectedId
-                                  ? `Vous avez choisi ${countryById.get(feedback.selectedId)?.name || "un autre territoire"}. `
-                                  : "Pas de souci. ") +
-                                `${target.name} est indiqué par le repère sur la carte.`}
-                          </p>
-                          <div className="country-facts">
-                            <span>
-                              <small>CAPITALE</small>
-                              <b>{target.capital}</b>
-                            </span>
-                            <span>
-                              <small>CONTINENT</small>
-                              <b>{target.continent}</b>
-                            </span>
-                          </div>
-                          <div className="feedback-mastery">
-                            <span>
-                              {isMastered(learning.memory[target.id])
-                                ? "Pays acquis !"
-                                : "Vers la maîtrise"}
-                            </span>
-                            <MiniProgress
-                              value={learning.memory[target.id]?.streak}
-                            />
-                          </div>
-                          <button
-                            ref={focusAfterKeyboard}
-                            className="button-primary next-button"
-                            data-next-question=""
-                            aria-keyshortcuts="Space"
-                            onClick={nextQuestion}
-                          >
-                            Pays suivant
-                            <ArrowRight size={17} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="question-actions">
-                          {session.hinted ? (
-                            <div className="hint-box" role="status">
-                              <Lightbulb size={17} />
-                              <span>
-                                5 zones possibles sont repérées sur la carte.
-                                <small>
-                                  Cette réponse sera un entraînement guidé.
-                                </small>
-                              </span>
-                            </div>
-                          ) : (
-                            <button
-                              className="hint-button"
-                              onClick={requestHint}
-                            >
-                              <Lightbulb size={17} /> Indice : 5 pays{" "}
-                              <span>?</span>
-                            </button>
-                          )}
-                          <button
-                            className="skip-button"
-                            onClick={() => submit(null)}
-                          >
-                            Je ne sais pas encore <ArrowRight size={14} />
-                          </button>
-                          <div className="no-pressure">
-                            <ShieldCheck size={13} /> Ici, l’erreur fait partie
-                            du voyage.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="game-footer">
-                  <span>
-                    <span className="mouse-icon" />{" "}
-                    {mode === "name"
-                      ? "Écrivez pour nommer"
-                      : "Cliquez pour placer"}{" "}
-                    <i>·</i> Deux doigts pour déplacer <i>·</i> Pincez pour
-                    zoomer
-                  </span>
-                  <span>
-                    <span className="tiny-live-dot" /> Progression{" "}
-                    {storageError ? "à exporter" : "sauvegardée"}
-                  </span>
-                </div>
-              </section>
-              <section className="journey-card">
-                <div className="journey-section-heading">
-                  <div>
-                    <span className="eyebrow">VOTRE HORIZON S’AGRANDIT</span>
-                    <h2>
-                      {learning.unlocked === 197
-                        ? "Tous les pays sont à portée de main."
-                        : learning.unlocked === 5
-                          ? "Les grandes populations, pour commencer."
-                          : `Étape ${Math.ceil(learning.unlocked / 5)} : de nouveaux repères.`}
-                    </h2>
-                  </div>
-                  <button
-                    className="text-link"
-                    onClick={() => navigate("atlas")}
-                  >
-                    Voir le parcours <ArrowRight size={15} />
-                  </button>
-                </div>
-                <div className="batch-row">
-                  <div className="batch-countries">
-                    {batch.map((c) => (
-                      <div className="batch-country" key={c.id}>
-                        <div
-                          className={`batch-flag ${isMastered(learning.memory[c.id]) ? "mastered" : ""}`}
-                        >
-                          <CountryFlag country={c} />
-                          {isMastered(learning.memory[c.id]) && (
-                            <span>
-                              <Check size={9} />
-                            </span>
-                          )}
-                        </div>
-                        <b>{c.name}</b>
-                        <MiniProgress value={learning.memory[c.id]?.streak} />
-                      </div>
-                    ))}
-                  </div>
-                  {nextBatch.length > 0 && (
-                    <>
-                      <div className="batch-connector">
-                        <span />
-                        <ChevronRight size={15} />
-                      </div>
-                      <div className="next-batch">
-                        <div className="next-flags">
-                          {nextBatch.slice(0, 3).map((c) => (
-                            <span key={c.id}>{flag(c)}</span>
-                          ))}
-                          <span className="next-lock">
-                            <LockKeyhole size={15} />
-                          </span>
-                        </div>
-                        <div>
-                          <b>Prochaine escale</b>
-                          <p>
-                            {nextBatch.length} pays à débloquer{" "}
-                            <span>
-                              · {batchAcquired}/{batch.length} acquis
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="journey-note">
-                  <Sparkles size={14} />
-                  <span>
-                    3 bonnes réponses consécutives, sans indice, pour acquérir
-                    un pays. Puis de nouveaux horizons s’ouvrent.
-                  </span>
-                </div>
-              </section>
-              <div className="stat-grid">
-                <Stat
-                  icon={<Globe2 size={21} />}
-                  value={acquired.length}
-                  suffix="/ 197"
-                  label="Pays acquis"
-                  detail="Votre monde s’agrandit"
-                  color="purple"
-                />
-                <Stat
-                  icon={<Layers3 size={21} />}
-                  value={learningCount}
-                  label="Pays en apprentissage"
-                  detail="Des repères qui se construisent"
-                  color="blue"
-                />
-                <Stat
-                  icon={<Target size={21} />}
-                  value={learning.attempts ? `${precision} %` : "—"}
-                  label="Précision globale"
-                  detail={
-                    learning.attempts
-                      ? `${learning.correct} bonnes réponses sur ${learning.attempts}`
-                      : "Votre première réponse vous attend"
-                  }
-                  color="peach"
+                ) : (
+                  <NamingQuestion
+                    key={`${profile.id}-${currentQuestion}-${session.current.id}`}
+                    country={target}
+                    question={currentQuestion}
+                    feedback={feedback}
+                    streak={learning.memory[target.id]?.streak || 0}
+                    onAnswer={(value) => submit(null, value)}
+                    onSkip={() => submit(null)}
+                    onNext={nextQuestion}
+                  />
+                )}
+                <WorldMap
+                  learning={learning}
+                  allowExpand={false}
+                  feedback={feedback}
+                  hintIds={session.hinted && !feedback ? session.hintIds : []}
+                  onSelect={(id) => {
+                    if (mode === "place") submit(id);
+                  }}
+                  namingTargetId={mode === "name" ? target.id : undefined}
+                  questionId={`${profile.id}-${currentQuestion}-${session.current.id}`}
                 />
               </div>
-              <div className="learning-note">
-                <span>
-                  <Sparkles size={16} /> Un apprentissage qui vous ressemble
-                </span>
-                <p>
-                  Les pays difficiles reviennent plus souvent. Ceux que vous
-                  connaissez ne sont jamais oubliés.
-                </p>
-                <button
-                  onClick={() => setDialog("help")}
-                  aria-label="Comprendre la méthode"
-                >
-                  <ArrowUpRight size={19} />
-                </button>
-              </div>
-            </>
+            </section>
           )}
           {page === "game-progress" && (
             <>
               <div className="progress-mode">
-                <ModeSwitch mode={mode} onChange={switchMode} />
                 <p>
                   Progression « {mode === "name" ? "Nommer" : "Placer"} » ·
                   Chaque variante garde ses acquis et ses révisions.
@@ -1412,193 +1123,56 @@ function App() {
           </div>
         </Modal>
       )}
-      {dialog === "profiles" && (
-        <Modal title="À chacun son voyage." onClose={() => setDialog(null)}>
-          <p className="modal-intro">
-            Chaque profil conserve sa progression sur ce navigateur.
-          </p>
-          <div className="profiles-list">
-            {store.profiles.map((p) => (
-              <button key={p.id} onClick={() => switchProfile(p.id)}>
-                <span className="avatar">{p.name[0].toUpperCase()}</span>
-                <span>
-                  <b>{p.name}</b>
-                  <small>
-                    {
-                      Object.values(progressFor(p).learning.memory).filter(
-                        isMastered,
-                      ).length
-                    }{" "}
-                    pays acquis · {progressFor(p).learning.xp} XP ·{" "}
-                    {p.mode === "name" ? "Nommer" : "Placer"}
-                  </small>
-                </span>
-                {p.id === profile.id ? (
-                  <Check size={19} />
-                ) : (
-                  <ArrowRight size={17} />
-                )}
-              </button>
-            ))}
-          </div>
-          {store.profiles.length < 30 && (
+      {dialog === "account" && (
+        <Modal
+          title={
+            account.recovering
+              ? "Nouveau mot de passe"
+              : account.user
+                ? "Mon compte"
+                : {
+                    login: "Se connecter",
+                    signup: "Créer un compte",
+                    reset: "Mot de passe oublié",
+                  }[accountForm]
+          }
+          onClose={() => setDialog(null)}
+        >
+          <AccountPanel
+            onModeChange={setAccountForm}
+            onNameChange={changePseudo}
+          />
+        </Modal>
+      )}
+      {dialog === "settings" && (
+        <Modal title="Réglages" onClose={() => setDialog(null)}>
+          {account.user ? (
+            <PseudoEditor onSaved={changePseudo} />
+          ) : (
             <form
-              className="new-profile-form"
+              className="rename-form"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!profileName.trim()) return;
-                const p = makeProfile(profileName);
-                p.session = startSession(p);
-                setStore((s) => ({
-                  ...s,
-                  activeId: p.id,
-                  profiles: [...s.profiles, p],
-                }));
-                setDialog(null);
-                navigate("library");
-                setSelectedId(null);
-                notify(`Bienvenue ${p.name}. Votre voyage commence !`);
+                if (!rename.trim()) return;
+                updateProfile((p) => ({ ...p, name: rename.trim() }));
+                notify("Votre nom a été mis à jour.");
               }}
             >
-              <label htmlFor="new-profile">Un nouvel explorateur ?</label>
+              <label htmlFor="rename">Nom affiché</label>
               <div>
                 <input
-                  id="new-profile"
-                  maxLength={32}
+                  id="rename"
+                  value={rename}
+                  onChange={(e) => setRename(e.target.value)}
                   required
-                  placeholder="Votre prénom ou pseudo"
-                  value={profileName}
-                  onChange={(e) => setProfileName(e.target.value)}
+                  maxLength={32}
                 />
                 <button className="button-primary" type="submit">
-                  <Plus size={17} /> Créer
+                  Enregistrer
                 </button>
               </div>
             </form>
           )}
-          <div className="profile-utilities">
-            <button className="button-secondary" onClick={openSettings}>
-              <Settings2 size={15} /> Réglages et sauvegarde
-            </button>
-            <button className="button-quiet" onClick={() => setDialog("help")}>
-              Comment apprendre ?
-            </button>
-          </div>
-          <div className="privacy-note">
-            <ShieldCheck size={16} />
-            <span>
-              Aucun compte, aucun envoi de données. Pensez à exporter vos
-              progrès pour les retrouver ailleurs.
-            </span>
-          </div>
-        </Modal>
-      )}
-      {dialog === "settings" && (
-        <Modal
-          title="Votre espace d’exploration."
-          onClose={() => setDialog(null)}
-        >
-          <form
-            className="rename-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!rename.trim()) return;
-              updateProfile((p) => ({ ...p, name: rename.trim() }));
-              notify("Votre nom a été mis à jour.");
-            }}
-          >
-            <label htmlFor="rename">Nom de l’explorateur</label>
-            <div>
-              <input
-                id="rename"
-                value={rename}
-                onChange={(e) => setRename(e.target.value)}
-                required
-                maxLength={32}
-              />
-              <button className="button-primary" type="submit">
-                Enregistrer
-              </button>
-            </div>
-          </form>
-          <section className="settings-section">
-            <h3>
-              <ShieldCheck size={18} /> Vos progrès vous appartiennent.
-            </h3>
-            <p>
-              Les profils, les réponses et la session en cours sont sauvegardés
-              sur ce navigateur. Exportez-les pour les transférer ou les
-              conserver.
-            </p>
-            <div className="settings-actions">
-              <button
-                className="button-secondary"
-                onClick={() => {
-                  downloadStore(store);
-                  notify("Votre sauvegarde a été exportée.");
-                }}
-              >
-                <ArrowDownToLine size={17} /> Exporter
-              </button>
-              <button
-                className="button-secondary"
-                onClick={() => fileInput.current?.click()}
-              >
-                <Upload size={17} /> Importer
-              </button>
-            </div>
-            <p className="input-note">
-              L’import ajoute les profils sous de nouveaux identifiants. Vos
-              profils actuels sont conservés.
-            </p>
-            <input
-              type="file"
-              accept=".json,application/json"
-              ref={fileInput}
-              hidden
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  if (file.size > 10_000_000) throw Error("10 Mo maximum.");
-                  const imported = parseStore(await file.text());
-                  if (store.profiles.length + imported.profiles.length > 30)
-                    throw Error("30 profils maximum.");
-                  const profiles = imported.profiles.map((p) => ({
-                    ...p,
-                    id: crypto.randomUUID(),
-                    name: p.name.slice(0, 24) + " (import)",
-                  }));
-                  setStore((s) => ({
-                    ...s,
-                    profiles: [...s.profiles, ...profiles],
-                  }));
-                  setImportError("");
-                  notify(
-                    `${profiles.length} profil(s) importé(s). Retrouvez-les dans le sélecteur de profils.`,
-                  );
-                } catch (err) {
-                  setImportError(
-                    err instanceof Error ? err.message : "Import impossible.",
-                  );
-                } finally {
-                  e.target.value = "";
-                }
-              }}
-            />
-            {importError && (
-              <p className="error-message" role="alert">
-                {importError}
-              </p>
-            )}
-          </section>
-          <div className="privacy-note">
-            <Users size={18} />
-            <span>
-              Vous partagez cet appareil ? Créez un profil par personne avec le
-              sélecteur en bas du menu.
-            </span>
-          </div>
         </Modal>
       )}
     </div>

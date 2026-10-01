@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, MapPin, Sparkles } from "lucide-react";
 import { CountryFlag, MiniProgress } from "./LearningUI";
-import ModeSwitch from "./ModeSwitch";
 import type { Country } from "../data/catalog";
-import type { Answer, GameMode } from "../engine/storage";
+import type { Answer } from "../engine/storage";
 
 interface Props {
   country: Country;
   question: number;
   feedback: Answer | null;
   streak: number;
-  focused: boolean;
-  onMode: (mode: GameMode) => void;
   onAnswer: (name: string) => void;
   onSkip: () => void;
   onNext: () => void;
@@ -22,8 +19,6 @@ export default function NamingQuestion({
   question,
   feedback,
   streak,
-  focused,
-  onMode,
   onAnswer,
   onSkip,
   onNext,
@@ -41,7 +36,7 @@ export default function NamingQuestion({
   }, [feedback]);
   return (
     <section
-      className={`${focused ? "focus-question" : "question-panel"} naming-question ${feedback ? "is-answered" : ""}`}
+      className={`focus-question naming-question ${feedback ? "is-answered" : ""}`}
       aria-label="Question en cours"
     >
       <div className="focus-question-heading">
@@ -54,7 +49,7 @@ export default function NamingQuestion({
             </span>
           )}
           <div>
-            <ModeSwitch mode="name" onChange={onMode} />
+            <span className="focus-prompt-label">NOMMER LES PAYS</span>
             <h2>{feedback ? country.name : "Quel est ce pays ?"}</h2>
           </div>
         </div>

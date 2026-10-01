@@ -85,14 +85,12 @@ test("reduce and quit respond to the first click after dragging and trackpad ges
     await beginDrag(page);
     await page.mouse.up();
     await page.mouse.wheel(90, 60);
-    await page
-      .locator(".world-map")
-      .dispatchEvent("wheel", {
-        ctrlKey: true,
-        deltaY: -20,
-        clientX: 1000,
-        clientY: 550,
-      });
+    await page.locator(".world-map").dispatchEvent("wheel", {
+      ctrlKey: true,
+      deltaY: -20,
+      clientX: 1000,
+      clientY: 550,
+    });
     await singleClick(page, ".focus-fullscreen");
     await expect
       .poll(() => page.evaluate(() => !!document.fullscreenElement))
@@ -114,7 +112,10 @@ test("reduce and quit respond to the first click after dragging and trackpad ges
     ).toBe(progress);
     if (cycle < 2) {
       await page
-        .getByRole("button", { name: "Jouer en plein écran", exact: true })
+        .getByRole("button", { name: "Reprendre le jeu", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Plein écran", exact: true })
         .click();
       await page
         .getByRole("button", { name: "Réduire le plein écran", exact: true })

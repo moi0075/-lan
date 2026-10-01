@@ -12,11 +12,13 @@
     "test:e2e": "playwright test",
     "format": "prettier --write src scripts e2e *.ts *.json *.html README.md",
     "audit:a11y": "node scripts/audit-accessibility.mjs",
-    "screenshots": "node scripts/capture-preview.mjs"
+    "screenshots": "node scripts/capture-preview.mjs",
+    "audit:security": "node scripts/check-production-security.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.2.8",
     "@fontsource/manrope": "^5.2.8",
+    "@supabase/supabase-js": "2.117.2",
     "d3-geo": "^3.1.1",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",

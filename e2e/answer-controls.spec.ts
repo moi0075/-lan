@@ -31,7 +31,7 @@ for (const answer of ["IND", "BRA"]) {
       .poll(() => page.evaluate(() => !!document.fullscreenElement))
       .toBe(true);
     await page
-      .getByRole("button", { name: "Quitter le mode jeu", exact: true })
+      .getByRole("button", { name: "Quitter le jeu", exact: true })
       .click();
     await expect(page.locator(".app-shell")).not.toHaveClass(/is-focused/);
     await expect
@@ -39,7 +39,7 @@ for (const answer of ["IND", "BRA"]) {
       .toBe(false);
     await expect(
       page.getByRole("button", { name: "Pays suivant", exact: true }),
-    ).not.toBeFocused();
+    ).toHaveCount(0);
   });
 }
 

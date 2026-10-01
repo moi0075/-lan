@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from "react";
-import { Compass, Expand, LocateFixed, Minus, Plus, X } from "lucide-react";
+import { Expand, LocateFixed, Minus, Plus, X } from "lucide-react";
 import shapes from "../data/map.json";
 import { countries, countryById, countryByMapId } from "../data/catalog";
 import { isMastered, type LearningState } from "../engine/learning";
@@ -362,10 +362,6 @@ export default function WorldMap({
         </g>
       </svg>
       {hover && <div className="map-hover">{hover}</div>}
-      <div className="map-compass" aria-hidden="true">
-        <span>N</span>
-        <Compass size={29} strokeWidth={1} />
-      </div>
       <div className="map-bottom">
         {explore ? (
           <div className="map-legend">
@@ -384,12 +380,12 @@ export default function WorldMap({
           <div className="map-legend quiz-legend">
             <span>
               {feedback
-                ? "Bonne position indiquée par le repère"
+                ? null
                 : namingTargetId
                   ? "Pays à nommer · surligné en violet"
                   : hintIds.length
                     ? "5 zones proposées · une seule bonne réponse"
-                    : "Carte sans indices"}
+                    : null}
             </span>
           </div>
         )}

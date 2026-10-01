@@ -43,7 +43,7 @@ export interface Store {
   activeId: string;
   profiles: Profile[];
 }
-const KEY = "atlas-learning-v1";
+export const GUEST_STORAGE_KEY = "atlas-learning-v1";
 export function makeProfile(name = "Explorateur"): Profile {
   return {
     id: crypto.randomUUID(),
@@ -124,7 +124,7 @@ const answer = (a: unknown): a is Answer =>
     (["exact", "close", "incorrect"].includes(String(a.nameMatch)) &&
       typeof a.typedName === "string" &&
       a.correct === (a.nameMatch === "exact")));
-/** Treat imported and stored data as untrusted. Never write it before full validation. */
+/** Treat stored data as untrusted. Never write it before full validation. */
 export function parseStore(text: string): Store {
   if (text.length > 10_000_000)
     throw Error("Ce fichier est trop volumineux (10 Mo maximum).");
@@ -276,15 +276,18 @@ export function parseStore(text: string): Store {
   if (!used.has(s.activeId)) throw Error("Profil actif introuvable.");
   return s as unknown as Store;
 }
-export function loadStore(): { store: Store; error?: string } {
+export function loadStore(key = GUEST_STORAGE_KEY): {
+  store: Store;
+  error?: string;
+} {
   let raw: string | null = null;
   try {
-    raw = localStorage.getItem(KEY);
+    raw = localStorage.getItem(key);
     return { store: raw ? parseStore(raw) : newStore() };
   } catch {
     if (raw) {
       try {
-        localStorage.setItem(`${KEY}-recovery`, raw);
+        localStorage.setItem(`${key}-recovery`, raw);
       } catch {
         /* Storage may be unavailable. */
       }
@@ -292,21 +295,11 @@ export function loadStore(): { store: Store; error?: string } {
     return {
       store: newStore(),
       error: raw
-        ? "La sauvegarde est invalide. Une copie de récupération a été conservée si le stockage le permet. Vous pouvez importer une sauvegarde valide dans les réglages."
-        : "Le stockage local est inaccessible. Exportez vos progrès avant de fermer.",
+        ? "La sauvegarde est invalide. Une copie de récupération a été conservée si le stockage le permet."
+        : "Le stockage local est inaccessible. Vos dernières réponses ne pourront pas être sauvegardées sur cet appareil.",
     };
   }
 }
-export function saveStore(s: Store): void {
-  localStorage.setItem(KEY, JSON.stringify(s));
-}
-export function downloadStore(s: Store): void {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(s, null, 2)], { type: "application/json" }),
-  );
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `elan-progression-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+export function saveStore(s: Store, key = GUEST_STORAGE_KEY): void {
+  localStorage.setItem(key, JSON.stringify(s));
 }

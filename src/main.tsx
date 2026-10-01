@@ -9,10 +9,10 @@ import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-600.css";
 import "@fontsource/manrope/latin-700.css";
 import "@fontsource/manrope/latin-800.css";
-import App from "./App";
+import AccountApp from "./auth/AccountApp";
 import "./styles.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <AccountApp />
   </React.StrictMode>,
 );

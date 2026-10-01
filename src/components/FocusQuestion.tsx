@@ -3,8 +3,6 @@ import { CountryFlag, MiniProgress } from "./LearningUI";
 import { countryById, type Country } from "../data/catalog";
 import type { Answer } from "../engine/storage";
 import { focusAfterKeyboard } from "./focusAfterKeyboard";
-import ModeSwitch from "./ModeSwitch";
-import type { GameMode } from "../engine/storage";
 interface Props {
   country: Country;
   question: number;
@@ -15,7 +13,6 @@ interface Props {
   onHint: () => void;
   onSkip: () => void;
   onNext: () => void;
-  onMode: (mode: GameMode) => void;
 }
 /** Compact question overlay, independent from the map's zoom and pan state. */
 export default function FocusQuestion({
@@ -28,18 +25,17 @@ export default function FocusQuestion({
   onHint,
   onSkip,
   onNext,
-  onMode,
 }: Props) {
   return (
     <section
-      className={`focus-question ${feedback ? "is-answered" : ""}`}
+      className={`focus-question stable-question ${feedback ? "is-answered" : ""}`}
       aria-label="Question en cours"
     >
       <div className="focus-question-heading">
         <div className="focus-country">
           <CountryFlag country={country} large />
           <div>
-            <ModeSwitch mode="place" onChange={onMode} />
+            <span className="focus-prompt-label">PLACER LES PAYS</span>
             <h2>
               {country.name}
               {!feedback && " ?"}
@@ -90,7 +86,7 @@ export default function FocusQuestion({
             </span>
             <button
               ref={focusAfterKeyboard}
-              className="button-primary"
+              className="focus-skip"
               data-next-question=""
               aria-keyshortcuts="Space"
               onClick={onNext}
@@ -107,23 +103,15 @@ export default function FocusQuestion({
             {hinted ? <>5 zones possibles sur la carte</> : reason}
           </span>
           <div>
-            {!hinted && (
-              <button className="focus-hint" onClick={onHint}>
-                <Lightbulb size={16} />
-                Indice : 5 pays
-              </button>
-            )}
+            <button className="focus-hint" onClick={onHint} disabled={hinted}>
+              <Lightbulb size={16} />
+              {hinted ? "Indice affiché" : "Indice : 5 pays"}
+            </button>
             <button className="focus-skip" onClick={onSkip}>
               Je ne sais pas encore
               <ArrowRight size={14} />
             </button>
           </div>
-          {hinted && (
-            <small className="focus-hint-note" role="status">
-              Une seule zone est correcte. Cette réponse restera un entraînement
-              guidé.
-            </small>
-          )}
         </div>
       )}
     </section>

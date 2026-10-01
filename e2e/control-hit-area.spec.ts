@@ -4,6 +4,9 @@ test("ordinary held clicks activate the full button surface including icons, edg
   page,
 }) => {
   await page.goto("/#/play");
+  await expect(
+    page.getByRole("button", { name: "Quitter le jeu", exact: true }),
+  ).toBeVisible();
   const initialProgress = await page.evaluate(() =>
     localStorage.getItem("atlas-learning-v1"),
   );
@@ -35,7 +38,10 @@ test("ordinary held clicks activate the full button surface including icons, edg
     await clickSpot(".focus-exit", spot);
     await expect(page.locator(".app-shell")).not.toHaveClass(/is-focused/);
     await page
-      .getByRole("button", { name: "Jouer en plein écran", exact: true })
+      .getByRole("button", { name: "Reprendre le jeu", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Plein écran", exact: true })
       .click();
     await page
       .getByRole("button", { name: "Réduire le plein écran", exact: true })
