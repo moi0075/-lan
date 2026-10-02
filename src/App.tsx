@@ -1,5 +1,6 @@
 import AccountPanel, { type FormMode } from "./auth/AccountPanel";
 import PseudoEditor from "./auth/PseudoEditor";
+import WelcomePseudo from "./auth/WelcomePseudo";
 import { useAccount } from "./auth/AccountContext";
 import { MiniProgress, CountryFlag, Stat } from "./components/LearningUI";
 import { useEffect, useRef, useState } from "react";
@@ -1123,6 +1124,7 @@ function App({
           </div>
         </Modal>
       )}
+      <WelcomePseudo enabled={!dialog && !focused} onSaved={changePseudo} />
       {dialog === "account" && (
         <Modal
           title={
