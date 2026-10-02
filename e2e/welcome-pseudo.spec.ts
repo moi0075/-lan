@@ -6,7 +6,7 @@ for (const choice of ["save", "later", "existing"] as const) {
       width: choice === "later" ? 390 : 1440,
       height: 900,
     });
-    let alias = "Joueur a12b3";
+    let alias = "Joueur a12b3c";
     let remote: any = null;
     let metadata: any = null;
     const exp = Math.floor(Date.now() / 1000) + 3600;

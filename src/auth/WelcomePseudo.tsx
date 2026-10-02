@@ -43,7 +43,7 @@ export default function WelcomePseudo({
       .then((player) => {
         if (
           !controller.signal.aborted &&
-          /^Joueur [a-f0-9]{5}$/i.test(player?.display_name ?? "")
+          /^Joueur [a-f0-9]{5,6}$/i.test(player?.display_name ?? "")
         )
           setOpen(true);
       })
