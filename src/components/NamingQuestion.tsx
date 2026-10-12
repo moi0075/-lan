@@ -1,3 +1,5 @@
+import UnlockProgress from "./UnlockProgress";
+import type { LearningState } from "../engine/learning";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, MapPin, Sparkles } from "lucide-react";
 import { CountryFlag, MiniProgress } from "./LearningUI";
@@ -5,6 +7,7 @@ import type { Country } from "../data/catalog";
 import type { Answer } from "../engine/storage";
 
 interface Props {
+  learning: LearningState;
   country: Country;
   question: number;
   feedback: Answer | null;
@@ -15,6 +18,7 @@ interface Props {
 }
 
 export default function NamingQuestion({
+  learning,
   country,
   question,
   feedback,
@@ -39,6 +43,7 @@ export default function NamingQuestion({
       className={`focus-question naming-question ${feedback ? "is-answered" : ""}`}
       aria-label="Question en cours"
     >
+      <UnlockProgress learning={learning} justUnlocked={feedback?.unlocked} />
       <div className="focus-question-heading">
         <div className="focus-country">
           {feedback ? (

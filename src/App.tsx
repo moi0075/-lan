@@ -642,6 +642,7 @@ function App({
               <div className="game-body">
                 {mode === "place" ? (
                   <FocusQuestion
+                    learning={learning}
                     country={target}
                     question={currentQuestion}
                     reason={reasons[session.current.reason]}
@@ -654,6 +655,7 @@ function App({
                   />
                 ) : (
                   <NamingQuestion
+                    learning={learning}
                     key={`${profile.id}-${currentQuestion}-${session.current.id}`}
                     country={target}
                     question={currentQuestion}

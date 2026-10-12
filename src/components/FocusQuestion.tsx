@@ -1,9 +1,12 @@
+import UnlockProgress from "./UnlockProgress";
+import type { LearningState } from "../engine/learning";
 import { ArrowRight, Check, Lightbulb, MapPin, Sparkles } from "lucide-react";
 import { CountryFlag, MiniProgress } from "./LearningUI";
 import { countryById, type Country } from "../data/catalog";
 import type { Answer } from "../engine/storage";
 import { focusAfterKeyboard } from "./focusAfterKeyboard";
 interface Props {
+  learning: LearningState;
   country: Country;
   question: number;
   reason: string;
@@ -16,6 +19,7 @@ interface Props {
 }
 /** Compact question overlay, independent from the map's zoom and pan state. */
 export default function FocusQuestion({
+  learning,
   country,
   question,
   reason,
@@ -31,6 +35,7 @@ export default function FocusQuestion({
       className={`focus-question stable-question ${feedback ? "is-answered" : ""}`}
       aria-label="Question en cours"
     >
+      <UnlockProgress learning={learning} justUnlocked={feedback?.unlocked} />
       <div className="focus-question-heading">
         <div className="focus-country">
           <CountryFlag country={country} large />

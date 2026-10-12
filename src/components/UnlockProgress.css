@@ -1,0 +1,21 @@
+/* A quiet top edge; absolute positioning keeps the map and question stationary. */
+.unlock-progress {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 2;
+  background: #dcebe3;
+  pointer-events: none;
+}
+.unlock-progress > span {
+  display: block;
+  height: 100%;
+  background: #268775;
+  border-radius: 0 3px 3px 0;
+  transition: width 450ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unlock-progress > span {
+    transition: none;
+  }
+}
