@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pinchView, zoomAt } from "./mapNavigation";
+import { pinchView, stepMapInertia, zoomAt } from "./mapNavigation";
 
 describe("map navigation geometry", () => {
   it("keeps the geographic point under an off-center cursor fixed", () => {
@@ -50,6 +50,38 @@ describe("map navigation geometry", () => {
       x: -980,
       y: -490,
       k: 12,
+    });
+  });
+});
+
+describe("map inertia", () => {
+  it("travels the same distance at different frame rates", () => {
+    const start = { x: 1.5, y: -0.7 };
+    const single = stepMapInertia(start, 120);
+    let velocity = start;
+    const distance = { x: 0, y: 0 };
+    for (let frame = 0; frame < 9; frame++) {
+      const step = stepMapInertia(velocity, 120 / 9);
+      velocity = step.velocity;
+      distance.x += step.displacement.x;
+      distance.y += step.displacement.y;
+    }
+    expect(distance.x).toBeCloseTo(single.displacement.x, 8);
+    expect(distance.y).toBeCloseTo(single.displacement.y, 8);
+    expect(velocity.x).toBeCloseTo(single.velocity.x, 8);
+    expect(velocity.y).toBeCloseTo(single.velocity.y, 8);
+  });
+
+  it("slows steadily in both directions without reversing", () => {
+    const first = stepMapInertia({ x: -2, y: 1 }, 100);
+    const second = stepMapInertia(first.velocity, 100);
+    expect(first.displacement.x).toBeLessThan(second.displacement.x);
+    expect(second.displacement.x).toBeLessThan(0);
+    expect(second.displacement.y).toBeGreaterThan(0);
+    expect(second.displacement.y).toBeLessThan(first.displacement.y);
+    expect(stepMapInertia({ x: 0, y: 0 }, 1000).displacement).toEqual({
+      x: 0,
+      y: 0,
     });
   });
 });

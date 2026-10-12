@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import App from "../App";
+import Modal from "../components/Modal";
+import { SignupProgress } from "./signupProgress";
 import { GUEST_STORAGE_KEY, type Store } from "../engine/storage";
 import { supabase, authRedirectUrl, googleIsEnabled } from "./supabase";
 import { AccountContext } from "./AccountContext";
@@ -14,6 +16,11 @@ export default function AccountApp() {
     store: Store;
     epoch: number;
   } | null>(null);
+  const [transfer, setTransfer] = useState<{
+    userId: string;
+    store: Store;
+  } | null>(null);
+  const signup = useRef(new SignupProgress());
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [recovering, setRecovering] = useState(false);
@@ -35,6 +42,8 @@ export default function AccountApp() {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (active) {
         if (event === "PASSWORD_RECOVERY") {
+          signup.current.clear();
+          setTransfer(null);
           rememberRecovery(session?.user.id ?? null);
           setRecovering(true);
         } else if (event === "SIGNED_OUT") {
@@ -85,11 +94,54 @@ export default function AccountApp() {
     };
   }, []);
   const userId = user?.id;
+  function prepareAccount(
+    controller: CloudProgress,
+    store: Store,
+    epoch: number,
+  ) {
+    if (!user) return;
+    const candidate = signup.current.forUser(user);
+    if (candidate && controller.canImportGuest) {
+      setTransfer({ userId: user.id, store: candidate });
+    } else if (controller.status !== "offline") {
+      signup.current.clear();
+      setTransfer(null);
+    }
+    setBoot({ id: user.id, store, epoch });
+  }
+  async function chooseTransfer(accept: boolean) {
+    const controller = sync.current;
+    if (!transfer || !controller || transfer.userId !== userId) return;
+    setBusy(true);
+    setError("");
+    try {
+      if (accept) {
+        if (!controller.canImportGuest) throw Error("Account changed");
+        controller.update(transfer.store);
+        await controller.flush();
+        if (sync.current !== controller) return;
+        setBoot((b) => ({
+          id: transfer.userId,
+          store: controller.store,
+          epoch: (b?.epoch ?? 0) + 1,
+        }));
+      }
+      signup.current.clear();
+      setTransfer(null);
+    } catch {
+      setError(
+        "Le transfert n’a pas abouti. Votre progression sans compte est conservée. Vous pouvez réessayer.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     clearTimeout(timer.current);
     if (!userId || !supabase) {
       sync.current = null;
       setBoot(null);
+      setTransfer(null);
       return;
     }
     let active = true;
@@ -104,7 +156,7 @@ export default function AccountApp() {
     controller
       .open()
       .then((store) => {
-        if (active) setBoot({ id: userId, store, epoch: 0 });
+        if (active) prepareAccount(controller, store, 0);
       })
       .catch(() => {
         if (active)
@@ -142,7 +194,7 @@ export default function AccountApp() {
       await controller.flush();
       const store = await controller.open(preferCloud);
       if (sync.current !== controller) return;
-      setBoot((b) => ({ id: userId, store, epoch: (b?.epoch ?? 0) + 1 }));
+      prepareAccount(controller, store, (boot?.epoch ?? 0) + 1);
     } catch {
       setError(
         "Impossible de charger le parcours. Votre copie locale est conservée.",
@@ -190,6 +242,7 @@ export default function AccountApp() {
     clearError: () => setError(""),
     signInWithEmail: (email: string, password: string) =>
       emailAction(async () => {
+        signup.current.clear();
         const { error } = await supabase!.auth.signInWithPassword({
           email,
           password,
@@ -199,18 +252,25 @@ export default function AccountApp() {
       }),
     signUpWithEmail: (email: string, password: string) =>
       emailAction(async () => {
+        signup.current.begin("email", email);
         const { data, error } = await supabase!.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: authRedirectUrl() },
         });
-        if (error) throw error;
+        if (error) {
+          signup.current.clear();
+          throw error;
+        }
+        if (data.user) signup.current.forUser(data.user);
+        else signup.current.clear();
         return data.session
           ? "Compte créé."
           : "Consultez votre boîte e-mail pour confirmer votre compte.";
       }),
     resetPassword: (email: string) =>
       emailAction(async () => {
+        signup.current.clear();
         const { error } = await supabase!.auth.resetPasswordForEmail(email, {
           redirectTo: authRedirectUrl(),
         });
@@ -230,6 +290,7 @@ export default function AccountApp() {
       setBusy(true);
       setError("");
       try {
+        signup.current.begin("google");
         if (!(await googleIsEnabled())) throw Error("Google disabled");
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -240,6 +301,7 @@ export default function AccountApp() {
         });
         if (error) throw error;
       } catch {
+        signup.current.clear();
         setError(
           "La connexion Google n’est pas disponible pour le moment. Vous pouvez utiliser votre adresse e-mail.",
         );
@@ -289,6 +351,45 @@ export default function AccountApp() {
               </button>
             </div>
           )}
+        </main>
+      ) : transfer && transfer.userId === userId && !recovering ? (
+        <main className="account-loading">
+          <Modal
+            title="Garder votre progression ?"
+            onClose={() => {
+              if (!busy) void chooseTransfer(false);
+            }}
+          >
+            <div className="account-panel signup-transfer">
+              <p>
+                Vous avez déjà joué sans compte. Voulez-vous retrouver cette
+                progression sur votre nouveau compte ?
+              </p>
+              <p>
+                Votre progression dans les deux jeux et votre partie en cours
+                seront conservées.
+              </p>
+              {error && (
+                <p className="account-notice" role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                className="button-primary"
+                disabled={busy}
+                onClick={() => void chooseTransfer(true)}
+              >
+                {busy ? "Veuillez patienter…" : "Oui, garder ma progression"}
+              </button>
+              <button
+                className="button-secondary"
+                disabled={busy}
+                onClick={() => void chooseTransfer(false)}
+              >
+                Commencer un nouveau parcours
+              </button>
+            </div>
+          </Modal>
         </main>
       ) : (
         <App

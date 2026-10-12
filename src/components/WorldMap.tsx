@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Expand, LocateFixed, Minus, Plus, X } from "lucide-react";
 import shapes from "../data/map.json";
 import { countries, countryById, countryByMapId } from "../data/catalog";
@@ -27,22 +27,65 @@ export default function WorldMap({
   questionId,
   namingTargetId,
 }: Props) {
-  const { svg, view, setView, moved, dragging, pointerHandlers, zoom, reset } =
-    useMapNavigation();
+  const {
+    svg,
+    view,
+    setView,
+    mobile,
+    maxZoom,
+    moved,
+    dragging,
+    pointerHandlers,
+    zoom,
+    reset,
+    stop,
+  } = useMapNavigation();
   const [expanded, setExpanded] = useState(false);
   const [hover, setHover] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [inspectedId, setInspectedId] = useState<string | null>(null);
+  const nameTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearName = () => {
+    if (nameTimeout.current !== null) clearTimeout(nameTimeout.current);
+    nameTimeout.current = null;
+    setHover(null);
+  };
+  const showName = (name: string) => {
+    clearName();
+    setHover(name);
+    nameTimeout.current = setTimeout(() => {
+      setHover(null);
+      nameTimeout.current = null;
+    }, 2500);
+  };
+  useEffect(
+    () => () => {
+      if (nameTimeout.current !== null) clearTimeout(nameTimeout.current);
+    },
+    [],
+  );
+  useEffect(() => {
+    stop();
+    if (feedback) {
+      const name = countryById.get(feedback.targetId)?.name;
+      if (name) showName(name);
+    }
+  }, [feedback, stop]);
   const [hoverReady, setHoverReady] = useState(false);
   const unlocked = new Set(
     countries.slice(0, learning.unlocked).map((c) => c.id),
   );
   useLayoutEffect(() => {
-    setHover(null);
+    stop();
+    clearName();
+    setHoveredId(null);
+    setInspectedId(null);
     setHoverReady(false);
     // A clicked SVG country can retain keyboard focus after Space advances.
     // Clear that focus before the next question paints its hover/focus styling.
     const active = document.activeElement;
     if (active && svg.current?.contains(active)) (active as HTMLElement).blur();
-  }, [questionId, namingTargetId]);
+  }, [questionId, namingTargetId, stop]);
   const centerNamedCountry = () => {
     const c = namingTargetId ? countryById.get(namingTargetId) : undefined;
     if (!c) return reset();
@@ -86,12 +129,59 @@ export default function WorldMap({
         ? id === feedback.targetId
         : hintIds.includes(id));
   const choose = (id: string) => {
-    if (!namingTargetId && !moved.current && (!feedback || explore))
-      onSelect(id);
+    if (moved.current || (namingTargetId && !feedback)) return;
+    if (explore || feedback) {
+      const name =
+        countryById.get(id)?.name ||
+        shapes.find((shape) => `territory:${shape.id}` === id)?.name;
+      if (name) showName(name);
+      setInspectedId(id);
+    }
+    if (!namingTargetId && (!feedback || explore)) onSelect(id);
+  };
+  const enterCountry = (id: string, name: string, pointerType: string) => {
+    setHoveredId(id);
+    if (pointerType !== "touch" && (explore || feedback)) showName(name);
+  };
+  const leaveCountry = (pointerType: string) => {
+    setHoveredId(null);
+    if (pointerType !== "touch") clearName();
+  };
+  const activeOutlineId =
+    hoveredId || inspectedId || (explore ? selectedId : feedback?.selectedId);
+  const outlineClass = (id?: string) => {
+    if (!feedback) return "";
+    if (feedback.correct && id === feedback.targetId)
+      return "answer-outline-correct";
+    if (!feedback.correct && id === (namingTargetId || feedback.selectedId))
+      return "answer-outline-incorrect";
+    return "";
+  };
+  const outline = (
+    shape: (typeof shapes)[number],
+    index: number,
+    active = false,
+  ) => {
+    const id = countryByMapId.get(shape.id)?.id || `territory:${shape.id}`;
+    return (
+      <path
+        key={`${shape.id}-${index}`}
+        data-outline-country={id}
+        data-outline-role={active ? "interaction" : "answer"}
+        className={`${active ? "interaction-outline" : ""} ${outlineClass(id)}`}
+        d={shape.d || ""}
+        fill="none"
+        stroke={namingTargetId && !feedback ? "#6246b5" : "#58696d"}
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    );
   };
   return (
     <div
-      className={`map-wrap ${expanded ? "map-expanded" : ""} ${explore ? "" : "quiz-map"} ${namingTargetId ? "naming-map" : ""} ${!explore && !feedback && !namingTargetId && !hoverReady ? "map-stale-hover" : ""}`}
+      className={`map-wrap ${mobile ? "touch-map" : ""} ${expanded ? "map-expanded" : ""} ${explore ? "" : "quiz-map"} ${namingTargetId ? "naming-map" : ""} ${!explore && !feedback && !namingTargetId && !hoverReady ? "map-stale-hover" : ""}`}
     >
       <div className="map-tag">
         <span className="live-dot" />
@@ -126,7 +216,8 @@ export default function WorldMap({
         }}
         onPointerLeave={(event) => {
           pointerHandlers.onPointerLeave(event);
-          setHover(null);
+          setHoveredId(null);
+          if (event.pointerType !== "touch") clearName();
           setHoverReady(true);
         }}
       >
@@ -179,6 +270,11 @@ export default function WorldMap({
                   explore ? c?.name || s.name : `Zone géographique ${i + 1}`
                 }
                 data-country={c?.id}
+                data-inspected={
+                  inspectedId === id || feedback?.selectedId === id
+                    ? "true"
+                    : undefined
+                }
                 data-naming-target={
                   namingTargetId === c?.id ? "true" : undefined
                 }
@@ -190,10 +286,12 @@ export default function WorldMap({
                     choose(id);
                   }
                 }}
-                onPointerEnter={() =>
-                  setHover(explore || feedback ? c?.name || s.name : null)
+                onPointerEnter={(event) =>
+                  enterCountry(id, c?.name || s.name, event.pointerType)
                 }
-                onPointerLeave={() => setHover(null)}
+                onPointerLeave={(event) => leaveCountry(event.pointerType)}
+                onFocus={() => setHoveredId(id)}
+                onBlur={() => setHoveredId(null)}
                 style={{
                   cursor: namingTargetId
                     ? "grab"
@@ -235,10 +333,12 @@ export default function WorldMap({
                     choose(c.id);
                   }
                 }}
-                onPointerEnter={() =>
-                  setHover(explore || feedback ? c.name : null)
+                onPointerEnter={(event) =>
+                  enterCountry(c.id, c.name, event.pointerType)
                 }
-                onPointerLeave={() => setHover(null)}
+                onPointerLeave={(event) => leaveCountry(event.pointerType)}
+                onFocus={() => setHoveredId(c.id)}
+                onBlur={() => setHoveredId(null)}
               />
             ))}
           {/* Draw every complete outline after the base fills so neighbouring
@@ -249,20 +349,11 @@ export default function WorldMap({
             aria-hidden="true"
           >
             {shapes.map((shape, index) => {
-              const country = countryByMapId.get(shape.id);
-              return marked(country?.id) ? (
-                <path
-                  key={`${shape.id}-${index}`}
-                  data-outline-country={country?.id}
-                  d={shape.d || ""}
-                  fill="none"
-                  stroke={namingTargetId ? "#6246b5" : "#58696d"}
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ) : null;
+              const id =
+                countryByMapId.get(shape.id)?.id || `territory:${shape.id}`;
+              return marked(id) || (id && feedback?.selectedId === id)
+                ? outline(shape, index)
+                : null;
             })}
           </g>
           {namingTargetId &&
@@ -345,20 +436,57 @@ export default function WorldMap({
                     strokeWidth="2"
                   />
                   <circle r="4" fill={feedback ? "#43555b" : "#7962d5"} />
-                  <rect
-                    x={-Math.min(140, Math.max(44, c.name.length * 4 + 10))}
-                    y="-42"
-                    width={Math.min(280, Math.max(88, c.name.length * 8 + 20))}
-                    height="25"
-                    rx="6"
-                    fill="#fff"
-                  />
-                  <text y="-25" textAnchor="middle">
-                    {c.name}
-                  </text>
+                  {!mobile && hover === c.name && (
+                    <>
+                      <rect
+                        x={-Math.min(140, Math.max(44, c.name.length * 4 + 10))}
+                        y="-42"
+                        width={Math.min(
+                          280,
+                          Math.max(88, c.name.length * 8 + 20),
+                        )}
+                        height="25"
+                        rx="6"
+                        fill="#fff"
+                      />
+                      <text y="-25" textAnchor="middle">
+                        {c.name}
+                      </text>
+                    </>
+                  )}
                 </g>
               ) : null;
             })()}
+          {/* The currently touched/hovered country is last, above other outlines and markers. */}
+          <g
+            className="interaction-outlines"
+            pointerEvents="none"
+            aria-hidden="true"
+          >
+            {shapes.map((shape, index) => {
+              const id =
+                countryByMapId.get(shape.id)?.id || `territory:${shape.id}`;
+              return id === activeOutlineId
+                ? outline(shape, index, true)
+                : null;
+            })}
+            {countries
+              .filter((c) => c.small && c.id === activeOutlineId)
+              .map((c) => (
+                <circle
+                  key={c.id}
+                  cx={c.point[0]}
+                  cy={c.point[1]}
+                  r={3.4 / Math.sqrt(view.k)}
+                  fill="none"
+                  stroke="#58696d"
+                  strokeWidth="2"
+                  vectorEffect="non-scaling-stroke"
+                  className={`interaction-outline ${outlineClass(c.id)}`}
+                  data-outline-marker={c.id}
+                />
+              ))}
+          </g>
         </g>
       </svg>
       {hover && <div className="map-hover">{hover}</div>}
@@ -401,7 +529,7 @@ export default function WorldMap({
           <button
             onClick={() => zoom(1.65)}
             aria-label="Zoomer"
-            disabled={view.k >= 12}
+            disabled={view.k >= maxZoom}
           >
             <Plus size={17} />
           </button>

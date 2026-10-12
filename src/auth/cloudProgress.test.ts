@@ -158,3 +158,37 @@ describe("account learning persistence", () => {
     expect(controller.status).toBe("saved");
   });
 });
+
+it("permits signup import only without remote or cached account progress", async () => {
+  const empty = new CloudProgress(accountKey("new"), repository(), () => {});
+  await empty.open();
+  expect(empty.canImportGuest).toBe(true);
+  const existing = new CloudProgress(
+    accountKey("existing"),
+    repository({ store: newStore(), revision: 1 }),
+    () => {},
+  );
+  await existing.open();
+  expect(existing.canImportGuest).toBe(false);
+  const store = newStore();
+  store.profiles[0].learning.attempts = 1;
+  saveStore(store, accountKey("cached"));
+  const cached = new CloudProgress(
+    accountKey("cached"),
+    repository(),
+    () => {},
+  );
+  await cached.open();
+  expect(cached.canImportGuest).toBe(false);
+});
+it("keeps the controller unchanged if caching an import fails", async () => {
+  const account = new CloudProgress(accountKey("new"), repository(), () => {});
+  await account.open();
+  const previous = account.store;
+  vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+    throw Error("quota");
+  });
+  expect(() => account.update(newStore())).toThrow("quota");
+  expect(account.store).toBe(previous);
+  expect(account.canImportGuest).toBe(true);
+});

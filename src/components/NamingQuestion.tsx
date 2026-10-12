@@ -1,5 +1,6 @@
 import UnlockProgress from "./UnlockProgress";
 import type { LearningState } from "../engine/learning";
+import AnswerDecoration from "./AnswerDecoration";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check, MapPin, Sparkles } from "lucide-react";
 import { CountryFlag, MiniProgress } from "./LearningUI";
@@ -40,9 +41,10 @@ export default function NamingQuestion({
   }, [feedback]);
   return (
     <section
-      className={`focus-question naming-question ${feedback ? "is-answered" : ""}`}
+      className={`focus-question naming-question ${feedback ? `is-answered ${feedback.correct ? "answer-correct" : "answer-incorrect"}` : ""}`}
       aria-label="Question en cours"
     >
+      {feedback?.correct && <AnswerDecoration />}
       <UnlockProgress learning={learning} justUnlocked={feedback?.unlocked} />
       <div className="focus-question-heading">
         <div className="focus-country">

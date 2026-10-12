@@ -1,5 +1,6 @@
 import UnlockProgress from "./UnlockProgress";
 import type { LearningState } from "../engine/learning";
+import AnswerDecoration from "./AnswerDecoration";
 import { ArrowRight, Check, Lightbulb, MapPin, Sparkles } from "lucide-react";
 import { CountryFlag, MiniProgress } from "./LearningUI";
 import { countryById, type Country } from "../data/catalog";
@@ -32,9 +33,10 @@ export default function FocusQuestion({
 }: Props) {
   return (
     <section
-      className={`focus-question stable-question ${feedback ? "is-answered" : ""}`}
+      className={`focus-question stable-question ${feedback ? `is-answered ${feedback.correct ? "answer-correct" : "answer-incorrect"}` : ""}`}
       aria-label="Question en cours"
     >
+      {feedback?.correct && <AnswerDecoration />}
       <UnlockProgress learning={learning} justUnlocked={feedback?.unlocked} />
       <div className="focus-question-heading">
         <div className="focus-country">

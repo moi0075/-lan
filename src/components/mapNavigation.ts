@@ -7,6 +7,8 @@ export interface MapPoint {
   x: number;
   y: number;
 }
+export const MAX_MAP_ZOOM = 12;
+export const MAX_MOBILE_MAP_ZOOM = 48;
 export const INITIAL_MAP_VIEW: MapView = { x: 0, y: 0, k: 1 };
 
 /** Keep the geographic point under the gesture stationary, even at a zoom limit. */
@@ -14,8 +16,9 @@ export function zoomAt(
   view: MapView,
   factor: number,
   anchor: MapPoint,
+  maxZoom = MAX_MAP_ZOOM,
 ): MapView {
-  const k = Math.min(12, Math.max(1, view.k * factor));
+  const k = Math.min(maxZoom, Math.max(1, view.k * factor));
   const ratio = k / view.k;
   return {
     k,
@@ -28,6 +31,7 @@ export function pinchView(
   view: MapView,
   before: [MapPoint, MapPoint],
   after: [MapPoint, MapPoint],
+  maxZoom = MAX_MAP_ZOOM,
 ): MapView {
   const center = (points: [MapPoint, MapPoint]) => ({
     x: (points[0].x + points[1].x) / 2,
@@ -41,10 +45,24 @@ export function pinchView(
     view,
     distance(after) / Math.max(1, distance(before)),
     previous,
+    maxZoom,
   );
   return {
     ...zoomed,
     x: zoomed.x + next.x - previous.x,
     y: zoomed.y + next.y - previous.y,
+  };
+}
+
+/** Frame-rate-independent friction, measured in screen pixels per millisecond. */
+export function stepMapInertia(velocity: MapPoint, elapsedMs: number) {
+  const frictionMs = 180;
+  const decay = Math.exp(-Math.max(0, elapsedMs) / frictionMs);
+  return {
+    displacement: {
+      x: velocity.x * frictionMs * (1 - decay),
+      y: velocity.y * frictionMs * (1 - decay),
+    },
+    velocity: { x: velocity.x * decay, y: velocity.y * decay },
   };
 }

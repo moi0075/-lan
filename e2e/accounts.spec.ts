@@ -495,3 +495,298 @@ test("a failed offline retry keeps the current journey visible and can be retrie
     page.getByText("Parcours sauvegardé sur votre compte", { exact: true }),
   ).toBeVisible();
 });
+
+async function playedGuest(page: import("@playwright/test").Page) {
+  await page.goto("/#/play/world-place");
+  await page.locator('[data-country="IND"]').click();
+  await expect(
+    page.getByRole("button", { name: "Pays suivant", exact: true }),
+  ).toBeVisible();
+  await page.goto("/#/play/world-name");
+  const input = page.getByRole("textbox", {
+    name: "Nommez le pays surligné en violet.",
+  });
+  await input.fill("inde");
+  await input.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Pays suivant", exact: true }),
+  ).toBeVisible();
+  await page.goto("/#/themes");
+  return page.evaluate(() =>
+    JSON.parse(localStorage.getItem("atlas-learning-v1")!),
+  );
+}
+async function startSignup(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: "Se connecter", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Créer un compte", exact: true })
+    .click();
+  await page.getByLabel("Adresse e-mail").fill("test@example.test");
+  await page
+    .getByLabel("Mot de passe", { exact: true })
+    .fill("new-password-123");
+  await page
+    .getByRole("button", { name: "Créer mon compte", exact: true })
+    .click();
+}
+async function cachedAccount(page: import("@playwright/test").Page) {
+  return page.evaluate(
+    (id) => JSON.parse(localStorage.getItem(`elan-account-${id}`)!),
+    userId,
+  );
+}
+async function restoreSession(
+  page: import("@playwright/test").Page,
+  session = mockSession(),
+) {
+  await page.evaluate(
+    (session) =>
+      localStorage.setItem(
+        "sb-edogylmvtddskmikshyr-auth-token",
+        JSON.stringify(session),
+      ),
+    session,
+  );
+  await page.reload();
+}
+for (const accept of [true, false]) {
+  test(`new email account asks once and ${accept ? "keeps both games" : "respects declining guest progress"}`, async ({
+    page,
+  }) => {
+    let remote: { store: any; revision: number } | null = null;
+    await page.route(`${host}/rest/v1/learning_accounts**`, (route) => {
+      if (route.request().method() === "GET")
+        return route.fulfill({ json: remote });
+      const body = route.request().postDataJSON();
+      remote = { store: body.store, revision: body.revision };
+      return route.fulfill({ json: [{ revision: body.revision }] });
+    });
+    await page.route(`${host}/auth/v1/signup**`, (route) =>
+      route.fulfill({ json: mockSession() }),
+    );
+    const guest = await playedGuest(page);
+    await startSignup(page);
+    const offer = page.getByRole("dialog", {
+      name: "Garder votre progression ?",
+    });
+    await expect(offer).toBeVisible();
+    expect(remote).toBeNull();
+    await page.reload();
+    await expect(offer).toBeVisible();
+    await offer
+      .getByRole("button", {
+        name: accept
+          ? "Oui, garder ma progression"
+          : "Commencer un nouveau parcours",
+        exact: true,
+      })
+      .click();
+    await expect(offer).toHaveCount(0);
+    await expect
+      .poll(
+        async () => (await cachedAccount(page)).profiles[0].learning.attempts,
+      )
+      .toBe(accept ? 1 : 0);
+    if (accept) {
+      expect((await cachedAccount(page)).profiles[0].naming.learning).toEqual(
+        guest.profiles[0].naming.learning,
+      );
+      expect((await cachedAccount(page)).profiles[0].session).toEqual(
+        guest.profiles[0].session,
+      );
+      await expect
+        .poll(() => remote?.store.profiles[0].learning.attempts)
+        .toBe(1);
+      expect(remote!.store.profiles).toHaveLength(1);
+    }
+    expect(
+      await page.evaluate(() =>
+        JSON.parse(localStorage.getItem("atlas-learning-v1")!),
+      ),
+    ).toEqual(guest);
+    await page.reload();
+    await expect(
+      page.getByRole("button", { name: "Mon compte", exact: true }),
+    ).toBeVisible();
+    await expect(offer).toHaveCount(0);
+  });
+}
+test("signup offer survives email confirmation on the same browser", async ({
+  page,
+}) => {
+  await mockCloud(page);
+  await page.route(`${host}/auth/v1/signup**`, (route) =>
+    route.fulfill({ json: mockSession().user }),
+  );
+  await playedGuest(page);
+  await startSignup(page);
+  await expect(page.getByRole("status")).toContainText(
+    "confirmer votre compte",
+  );
+  await page.reload();
+  await restoreSession(page);
+  await expect(
+    page.getByRole("dialog", { name: "Garder votre progression ?" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Oui, garder ma progression", exact: true })
+    .click();
+  await expect
+    .poll(async () => (await cachedAccount(page)).profiles[0].learning.attempts)
+    .toBe(1);
+});
+test("normal email login never offers guest progress, even with an empty account", async ({
+  page,
+}) => {
+  await mockCloud(page);
+  await page.route(`${host}/auth/v1/token**`, (route) =>
+    route.fulfill({ json: mockSession() }),
+  );
+  await playedGuest(page);
+  await page.getByRole("button", { name: "Se connecter", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Adresse e-mail").fill("test@example.test");
+  await dialog
+    .getByLabel("Mot de passe", { exact: true })
+    .fill("new-password-123");
+  await dialog
+    .getByRole("button", { name: "Se connecter", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Mon compte", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Garder votre progression ?" }),
+  ).toHaveCount(0);
+  expect((await cachedAccount(page)).profiles[0].learning.attempts).toBe(0);
+});
+test("signup never replaces an existing cloud journey", async ({ page }) => {
+  const guest = await playedGuest(page);
+  const remote = structuredClone(guest);
+  remote.profiles[0].name = "Compte déjà sauvegardé";
+  let writes = 0;
+  await page.route(`${host}/rest/v1/learning_accounts**`, (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { store: remote, revision: 3 } });
+    writes++;
+    return route.fulfill({ json: [{ revision: 4 }] });
+  });
+  await page.route(`${host}/auth/v1/signup**`, (route) =>
+    route.fulfill({ json: mockSession() }),
+  );
+  await startSignup(page);
+  await expect(
+    page.getByRole("button", { name: "Mon compte", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Garder votre progression ?" }),
+  ).toHaveCount(0);
+  expect((await cachedAccount(page)).profiles[0].name).toBe(
+    "Compte déjà sauvegardé",
+  );
+  expect(writes).toBe(0);
+});
+for (const existing of [false, true]) {
+  test(`Google signup ${existing ? "does not import to an existing account" : "offers progress for a newly created account"}`, async ({
+    page,
+  }) => {
+    await mockCloud(page);
+    await page.route(`${host}/auth/v1/settings`, (route) =>
+      route.fulfill({ json: { external: { google: true } } }),
+    );
+    await page.route(`${host}/auth/v1/authorize**`, (route) =>
+      route.fulfill({ contentType: "text/html", body: "<h1>Google mock</h1>" }),
+    );
+    await playedGuest(page);
+    await page
+      .getByRole("button", { name: "Se connecter", exact: true })
+      .click();
+
+    await page
+      .getByRole("button", { name: "Continuer avec Google", exact: true })
+      .click();
+    await expect(page).toHaveURL(/auth\/v1\/authorize/);
+    await page.goto("/#/themes");
+    const session = mockSession();
+    session.user.app_metadata.provider = "google";
+    if (existing) session.user.created_at = "2020-01-01T00:00:00Z";
+    await restoreSession(page, session);
+    const offer = page.getByRole("dialog", {
+      name: "Garder votre progression ?",
+    });
+    if (existing) {
+      await expect(
+        page.getByRole("button", { name: "Mon compte", exact: true }),
+      ).toBeVisible();
+      await expect(offer).toHaveCount(0);
+    } else {
+      await expect(offer).toBeVisible();
+    }
+  });
+}
+
+test("signup without guest progress does not ask to transfer", async ({
+  page,
+}) => {
+  await mockCloud(page);
+  await page.route(`${host}/auth/v1/signup**`, (route) =>
+    route.fulfill({ json: mockSession() }),
+  );
+  await page.goto("/#/themes");
+  await startSignup(page);
+  await expect(
+    page.getByRole("button", { name: "Mon compte", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Garder votre progression ?" }),
+  ).toHaveCount(0);
+});
+test("mobile signup choice is accessible and imported progress survives an upload failure", async ({
+  page,
+}) => {
+  const { default: AxeBuilder } = await import("@axe-core/playwright");
+  await page.setViewportSize({ width: 390, height: 844 });
+  let offline = true;
+  let saved: any = null;
+  await page.route(`${host}/rest/v1/learning_accounts**`, (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: saved });
+    if (offline)
+      return route.fulfill({ status: 503, json: { message: "offline" } });
+    const body = route.request().postDataJSON();
+    saved = { store: body.store, revision: body.revision };
+    return route.fulfill({ json: [{ revision: body.revision }] });
+  });
+  await page.route(`${host}/auth/v1/signup**`, (route) =>
+    route.fulfill({ json: mockSession() }),
+  );
+  await playedGuest(page);
+  await startSignup(page);
+  const offer = page.getByRole("dialog", {
+    name: "Garder votre progression ?",
+  });
+  await expect(offer).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations).toEqual([]);
+  await page.screenshot({ path: "artifacts/signup-transfer-mobile.png" });
+  await page
+    .getByRole("button", { name: "Oui, garder ma progression", exact: true })
+    .click();
+  await expect(offer).toHaveCount(0);
+  expect((await cachedAccount(page)).profiles[0].learning.attempts).toBe(1);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Mon compte", exact: true }),
+  ).toBeVisible();
+  await expect(offer).toHaveCount(0);
+  await page.getByRole("button", { name: "Mon compte", exact: true }).click();
+  await expect(page.locator(".account-sync")).toContainText(
+    "Vos progrès restent sur cet appareil",
+  );
+  offline = false;
+  await page
+    .getByRole("button", { name: "Réessayer la sauvegarde", exact: true })
+    .click();
+  await expect.poll(() => saved?.store.profiles[0].learning.attempts).toBe(1);
+  expect(saved.store.profiles[0].naming.learning.attempts).toBe(1);
+});

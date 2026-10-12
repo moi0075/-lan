@@ -121,6 +121,10 @@ test("dragging a country never submits it, and a later click still works", async
   expect(await attempts(page)).toBe(0);
   expect((await mapView(page)).x).toBeGreaterThan(0);
   await page.mouse.click(start.x + 150, start.y + 70);
+  // The first press catches the moving map without selecting a country.
+  expect(await attempts(page)).toBe(0);
+  await page.getByRole("button", { name: "Recentrer la carte" }).click();
+  await page.locator('[data-country="IND"]').click();
   await expect.poll(() => attempts(page)).toBe(1);
 });
 
@@ -162,7 +166,9 @@ test("hint and correction outlines include every polygon and sit above all neigh
 }) => {
   await page.goto("/#/play");
   await expect(page.locator(".focus-question")).toBeVisible();
-  await expect(page.locator("[data-outline-country]")).toHaveCount(0);
+  await expect(
+    page.locator(".country-outlines [data-outline-country]"),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Indice : 5 pays", exact: true })
     .click();
@@ -209,11 +215,14 @@ test("hint and correction outlines include every polygon and sit above all neigh
   await page
     .getByRole("button", { name: "Je ne sais pas encore", exact: true })
     .click();
-  await expect(page.locator("[data-outline-country]")).toHaveCount(1);
-  await expect(page.locator("[data-outline-country]")).toHaveAttribute(
-    "data-outline-country",
-    "IND",
-  );
+  await expect(
+    page.locator(".country-outlines [data-outline-country]"),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".country-outlines [data-outline-country]"),
+  ).toHaveAttribute("data-outline-country", "IND");
   await page.getByRole("button", { name: "Pays suivant" }).click();
-  await expect(page.locator("[data-outline-country]")).toHaveCount(0);
+  await expect(
+    page.locator(".country-outlines [data-outline-country]"),
+  ).toHaveCount(0);
 });

@@ -4768,3 +4768,180 @@ select:focus-visible {
   display: block;
   margin-top: 8px;
 }
+
+/* Keep country names readable on a phone, even at the maximum map zoom. */
+@media (max-width: 700px), (pointer: coarse) {
+  .map-hover,
+  .is-focused .map-hover {
+    font-size: 22px;
+    line-height: 1.3;
+    width: max-content;
+    max-width: calc(100% - 32px);
+    text-align: center;
+  }
+}
+
+.signup-transfer {
+  padding: 0 24px 24px;
+  text-align: left;
+}
+.signup-transfer p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Answer colors change without moving or resizing the question panel. */
+.focus-question.answer-correct {
+  border-color: #278659;
+  box-shadow:
+    inset 0 0 0 1px #278659,
+    0 10px 40px #2637450b;
+  animation: answer-correct-border 700ms ease-out both;
+}
+.focus-question.answer-incorrect {
+  border-color: #bf4545;
+  box-shadow:
+    inset 0 0 0 1px #bf4545,
+    0 10px 40px #2637450b;
+  animation: answer-incorrect-border 700ms ease-out both;
+}
+@keyframes answer-correct-border {
+  from {
+    border-color: #dbe8df;
+    box-shadow:
+      inset 0 0 0 1px transparent,
+      0 10px 40px #2637450b;
+  }
+  to {
+    border-color: #278659;
+    box-shadow:
+      inset 0 0 0 1px #278659,
+      0 10px 40px #2637450b;
+  }
+}
+@keyframes answer-incorrect-border {
+  from {
+    border-color: #dbe8df;
+    box-shadow:
+      inset 0 0 0 1px transparent,
+      0 10px 40px #2637450b;
+  }
+  to {
+    border-color: #bf4545;
+    box-shadow:
+      inset 0 0 0 1px #bf4545,
+      0 10px 40px #2637450b;
+  }
+}
+.answer-outline-correct {
+  stroke: #278659;
+  animation: answer-correct-outline 700ms ease-out both;
+}
+.answer-outline-incorrect {
+  stroke: #bf4545;
+  animation: answer-incorrect-outline 700ms ease-out both;
+}
+@keyframes answer-correct-outline {
+  from {
+    stroke: #58696d;
+  }
+  to {
+    stroke: #278659;
+  }
+}
+@keyframes answer-incorrect-outline {
+  from {
+    stroke: #58696d;
+  }
+  to {
+    stroke: #bf4545;
+  }
+}
+.map-stale-hover .interaction-outline {
+  display: none;
+}
+.quiz-map .country-path[data-inspected="true"] {
+  fill: #aabfc0;
+}
+.answer-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+}
+.answer-confetti span {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 5px;
+  height: 9px;
+  border-radius: 1px;
+  background: #278659;
+  opacity: 0;
+  animation: answer-confetti-fall 1100ms ease-out both;
+}
+.answer-confetti span:nth-child(2) {
+  left: 24%;
+  background: #b99bdd;
+  animation-delay: 80ms;
+}
+.answer-confetti span:nth-child(3) {
+  left: 35%;
+  background: #dfaf54;
+  animation-delay: 160ms;
+}
+.answer-confetti span:nth-child(4) {
+  left: 46%;
+  animation-delay: 40ms;
+}
+.answer-confetti span:nth-child(5) {
+  left: 57%;
+  background: #b99bdd;
+  animation-delay: 120ms;
+}
+.answer-confetti span:nth-child(6) {
+  left: 68%;
+  background: #dfaf54;
+  animation-delay: 200ms;
+}
+.answer-confetti span:nth-child(7) {
+  left: 79%;
+  animation-delay: 60ms;
+}
+.answer-confetti span:nth-child(8) {
+  left: 90%;
+  background: #b99bdd;
+  animation-delay: 140ms;
+}
+@keyframes answer-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate(-8px, -12px) rotate(0deg);
+  }
+  15% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(16px, 160px) rotate(240deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer-confetti {
+    display: none;
+  }
+}
+
+.touch-map .map-hover,
+.is-focused .touch-map .map-hover {
+  font-size: 22px;
+  line-height: 1.3;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}

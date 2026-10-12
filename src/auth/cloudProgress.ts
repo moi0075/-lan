@@ -1,3 +1,4 @@
+import { hasProgress } from "./signupProgress";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   loadStore,
@@ -140,9 +141,18 @@ export class CloudProgress {
     this.changed();
     return this.store;
   }
+  get canImportGuest() {
+    return (
+      this.ready &&
+      this.revision === null &&
+      !this.store.profiles.some((profile) =>
+        hasProgress({ ...this.store, activeId: profile.id }),
+      )
+    );
+  }
   update(store: Store) {
-    this.store = store;
     saveStore(store, this.key);
+    this.store = store;
     if (this.ready && JSON.stringify(store) !== this.base) {
       this.status = "saving";
       this.changed();
