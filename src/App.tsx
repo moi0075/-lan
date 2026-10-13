@@ -369,7 +369,10 @@ function App({
       (continent === "Tous les continents" || c.continent === continent),
   );
   return (
-    <div ref={shell} className={`app-shell ${focused ? "is-focused" : ""}`}>
+    <div
+      ref={shell}
+      className={`app-shell paysage-system ${focused ? "is-focused" : ""} ${page === "library" && !menuTheme ? "home-landing-shell" : ""}`}
+    >
       {focused && (
         <FocusControls
           fullscreen={nativeFullscreen}
@@ -387,11 +390,11 @@ function App({
             <BrandMark size={27} />
           </span>
           <span>
-            élan<span className="brand-dot">.</span>
-            <small>LE SAVOIR EN MOUVEMENT</small>
+            élan
+            <small>Le savoir en mouvement</small>
           </span>
         </button>
-        <div className="nav-label">VOTRE APPRENTISSAGE</div>
+        <div className="nav-label">Votre apprentissage</div>
         <nav aria-label="Navigation principale">
           <button
             className={`nav-item ${page === "library" ? "active" : ""}`}
@@ -456,11 +459,19 @@ function App({
           </div>
         </div>
         <div className="sidebar-bottom">
-          <button className="nav-item" onClick={() => setDialog("help")}>
+          <button
+            className="nav-item"
+            aria-label="Comment ça marche ?"
+            onClick={() => setDialog("help")}
+          >
             <CircleHelp size={18} />
             <span>Comment ça marche ?</span>
           </button>
-          <button className="nav-item" onClick={openSettings}>
+          <button
+            className="nav-item"
+            aria-label="Réglages"
+            onClick={openSettings}
+          >
             <Settings2 size={18} />
             <span>Réglages</span>
           </button>
@@ -557,16 +568,6 @@ function App({
             >
               {account.user ? "Mon compte" : "Se connecter"}
             </button>
-            <span className="topbar-divider" />
-            <button
-              className="avatar avatar-small"
-              onClick={openAccount}
-              aria-label={
-                account.user ? "Ouvrir mon compte" : "Ouvrir la connexion"
-              }
-            >
-              {profile.name.slice(0, 1).toUpperCase()}
-            </button>
           </div>
         </header>
         <main>
@@ -583,6 +584,10 @@ function App({
               onPlay={(game) => openLibraryGame(game, "play")}
               onStats={(game) => openLibraryGame(game, "game-progress")}
               onOpenAtlas={() => navigate("atlas")}
+              onProgress={() => navigate("progress")}
+              onLeaderboard={() => navigate("leaderboard")}
+              onAccount={openAccount}
+              hasAccount={!!account.user}
             />
           )}
           {page === "leaderboard" && (
@@ -639,6 +644,9 @@ function App({
                   : "Jeu de nommage des pays"
               }
             >
+              <h1 className="visually-hidden">
+                {mode === "place" ? "Placer les pays" : "Nommer les pays"}
+              </h1>
               <div className="game-body">
                 {mode === "place" ? (
                   <FocusQuestion
@@ -803,7 +811,12 @@ function App({
                     />
                   </label>
                 </div>
-                <div className="table-scroll">
+                <div
+                  className="table-scroll"
+                  role="region"
+                  aria-label="Progression pays par pays"
+                  tabIndex={0}
+                >
                   <table>
                     <thead>
                       <tr>

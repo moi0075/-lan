@@ -1,0 +1,1114 @@
+/* Élan — Paysage. The hero owns the illustration; working screens stay calm. */
+:root {
+  --land-ink: #173b58;
+  --land-text: #35566e;
+  --land-muted: #48677c;
+  --land-blue: #245a7d;
+  --land-sky: #8bb8d4;
+  --land-sky-light: #dcecf4;
+  --land-paper: #f7fbfc;
+  --land-white: #ffffff;
+  --land-line: #aec9d8;
+  --land-yellow: #fff0a0;
+  --land-success: #23715a;
+  --land-error: #ae3e42;
+  --land-warning: #855914;
+  --purple: var(--land-blue);
+  --purple-dark: var(--land-ink);
+  --border: var(--land-line);
+  --green: var(--land-success);
+  color: var(--land-ink);
+  background: var(--land-paper);
+  font-family: "IBM Plex Sans", sans-serif;
+}
+body {
+  background: var(--land-paper);
+}
+.paysage-system {
+  background: var(--land-paper);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+.table-scroll:focus-visible,
+.country-path:focus-visible,
+.country-marker:focus-visible {
+  outline: 3px solid #b48400;
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.55;
+}
+a {
+  color: var(--land-blue);
+}
+
+/* Navigation: one consistent hierarchy for all working screens. */
+.paysage-system:not(.home-landing-shell) {
+  color: var(--land-ink);
+}
+.paysage-system .sidebar {
+  background: #e6f1f7;
+  border-right: 1px solid var(--land-line);
+}
+.paysage-system .brand {
+  margin-bottom: 36px;
+}
+.paysage-system .brand-icon {
+  background: var(--land-ink);
+  color: var(--land-yellow);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.paysage-system .brand > span:nth-child(2) {
+  color: var(--land-ink);
+}
+.paysage-system .brand small {
+  margin-top: 7px;
+  color: var(--land-text);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.paysage-system .nav-label {
+  color: var(--land-muted);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.paysage-system .nav-item {
+  min-height: 46px;
+  margin-bottom: 4px;
+  color: var(--land-text);
+  border-radius: 4px;
+  font-size: 13px;
+}
+.paysage-system .nav-item:hover {
+  color: var(--land-ink);
+  background: #d2e5ef;
+}
+.paysage-system .nav-item.active,
+.paysage-system .nav-item.active:hover {
+  color: white;
+  background: var(--land-ink);
+  font-weight: 600;
+}
+.paysage-system .nav-active-dot {
+  background: var(--land-yellow);
+}
+.paysage-system .sidebar-journey {
+  display: none;
+}
+.paysage-system .sidebar-bottom > .nav-item {
+  font-size: 12px;
+}
+.paysage-system .account-summary {
+  border-color: var(--land-line);
+}
+.paysage-system .account-summary-copy small {
+  color: var(--land-muted);
+}
+.paysage-system .account-summary-copy small {
+  font-size: 11px;
+}
+.paysage-system .avatar {
+  background: #c8e2ef;
+  color: var(--land-ink);
+}
+.paysage-system .topbar {
+  background: var(--land-paper);
+  border-color: var(--land-line);
+}
+.paysage-system .breadcrumb,
+.paysage-system .library-breadcrumb button {
+  color: var(--land-text);
+  font-size: 12px;
+}
+.paysage-system .breadcrumb b {
+  color: var(--land-ink);
+  font-weight: 600;
+}
+.paysage-system .library-breadcrumb button:hover {
+  color: var(--land-blue);
+}
+.paysage-system .streak-chip,
+.paysage-system .streak-chip svg,
+.paysage-system .streak-chip span {
+  color: var(--land-text);
+}
+.paysage-system .topbar-divider {
+  background: var(--land-line);
+}
+.paysage-system:not(.home-landing-shell) main {
+  max-width: 1510px;
+  padding: 45px clamp(25px, 4vw, 67px) 0;
+}
+
+/* Type and surfaces. Functional labels use sentence case. */
+.paysage-system:not(.home-landing-shell) h1,
+.paysage-system .library-heading h1,
+.paysage-system .leaderboard-hero h1 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(40px, 4.5vw, 66px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.06;
+}
+.paysage-system .library-heading,
+.paysage-system .page-heading,
+.paysage-system .leaderboard-hero {
+  margin: 0 0 35px;
+}
+.paysage-system .library-heading p,
+.paysage-system .page-heading p,
+.paysage-system .leaderboard-hero p,
+.paysage-system .general-heading p {
+  max-width: 70ch;
+  color: var(--land-text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.paysage-system .library-heading-icon,
+.paysage-system .heading-badge,
+.paysage-system .leaderboard-emblem,
+.paysage-system .leaderboard-hero-tags {
+  display: none;
+}
+.paysage-system .library-heading .eyebrow,
+.paysage-system .page-heading .eyebrow,
+.paysage-system .leaderboard-hero .eyebrow,
+.paysage-system .general-hero-copy .eyebrow,
+.paysage-system .panel-heading .eyebrow {
+  display: none;
+}
+.paysage-system .page-footer {
+  color: var(--land-muted);
+  border-color: var(--land-line);
+  font-size: 12px;
+}
+.paysage-system .page-footer button {
+  color: var(--land-blue);
+  font-size: 12px;
+}
+.paysage-system .page-footer > span > svg {
+  color: var(--land-blue);
+}
+.paysage-system .button-primary {
+  min-height: 46px;
+  border-radius: 4px;
+  background: var(--land-ink);
+  color: white;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.paysage-system .button-primary:hover,
+.paysage-system .game-place .library-play:hover,
+.paysage-system .game-name .library-play:hover {
+  background: var(--land-blue);
+  box-shadow: none;
+}
+.paysage-system .button-secondary {
+  min-height: 44px;
+  border: 1px solid var(--land-blue);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--land-blue);
+  font-size: 13px;
+  font-weight: 600;
+}
+.paysage-system .button-secondary:hover {
+  background: var(--land-sky-light);
+}
+.paysage-system .button-quiet,
+.paysage-system .text-link {
+  color: var(--land-blue);
+  font-size: 13px;
+}
+.paysage-system .text-link:hover {
+  color: var(--land-ink);
+  text-decoration: underline;
+}
+.paysage-system .soft-chip,
+.paysage-system .library-section-title > span {
+  background: transparent;
+  color: var(--land-muted);
+  font-size: 13px;
+  border-radius: 0;
+}
+
+/* Theme and game library: the next action appears before aggregate statistics. */
+.paysage-system .learning-library {
+  padding-bottom: 30px;
+}
+.paysage-system .library-section-title {
+  margin: 0 0 18px;
+}
+.paysage-system .library-section-title h2,
+.paysage-system .catalog-heading h2,
+.paysage-system .panel-heading h2 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(26px, 2.5vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.paysage-system .library-topic-link {
+  min-height: 46px;
+  margin-bottom: 23px;
+  border-color: var(--land-line);
+  border-radius: 4px;
+  background: #e8f3f8;
+  color: var(--land-blue);
+  font-size: 14px;
+}
+.paysage-system .library-topic-link:hover {
+  background: #d8eaf3;
+}
+.paysage-system .library-collection-card,
+.paysage-system .library-game-card,
+.paysage-system .library-overview,
+.paysage-system .white-panel,
+.paysage-system .general-topic,
+.paysage-system .general-game-card,
+.paysage-system .leaderboard-board,
+.paysage-system .stat-card {
+  border: 1px solid var(--land-line);
+  border-radius: 5px;
+  background: white;
+  box-shadow: none;
+}
+.paysage-system .library-collection-card {
+  grid-template-columns: minmax(250px, 0.85fr) minmax(0, 1.2fr);
+}
+.paysage-system .collection-art {
+  min-height: 330px;
+  color: var(--land-ink);
+  background: #bcd7e7;
+}
+.paysage-system .collection-art::before,
+.paysage-system .collection-art::after {
+  content: "";
+  position: absolute;
+  width: 270px;
+  height: 255px;
+  bottom: -20px;
+  left: calc(50% - 135px);
+  border: 12px solid var(--land-paper);
+  border-bottom: 0;
+  border-radius: 150px 150px 0 0;
+  background: #91b2c8;
+}
+.paysage-system .collection-art::after {
+  width: 175px;
+  height: 170px;
+  left: calc(50% - 87px);
+  background: #dcecf4;
+}
+.paysage-system .collection-art > svg {
+  z-index: 2;
+  width: 120px;
+  transform: none;
+}
+.paysage-system .collection-orbit,
+.paysage-system .collection-art-caption {
+  display: none;
+}
+.paysage-system .collection-body {
+  padding: clamp(25px, 3vw, 45px);
+}
+.paysage-system .collection-body h3,
+.paysage-system .library-game-body h3,
+.paysage-system .general-topic-heading h3 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(30px, 3vw, 45px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+.paysage-system .collection-label,
+.paysage-system .game-skill,
+.paysage-system .general-topic-heading span {
+  color: var(--land-blue);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.paysage-system .collection-body > p,
+.paysage-system .game-description {
+  max-width: 68ch;
+  color: var(--land-text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.paysage-system .collection-acquired,
+.paysage-system .game-progress-caption {
+  color: var(--land-muted);
+  font-size: 13px;
+}
+.paysage-system .library-game-grid {
+  gap: 20px;
+}
+.paysage-system .game-preview {
+  height: 190px;
+}
+.paysage-system .preview-place,
+.paysage-system .preview-name {
+  background: #dcecf4;
+  color: #5e8ba8;
+}
+.paysage-system .preview-world {
+  opacity: 0.55;
+  transform: scale(1.16);
+}
+.paysage-system .preview-symbol {
+  width: 65px;
+  height: 65px;
+  color: var(--land-ink);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: none;
+  transform: none;
+}
+.paysage-system .preview-name .preview-symbol {
+  transform: none;
+}
+.paysage-system .preview-direction {
+  color: var(--land-ink);
+  font-size: 13px;
+  letter-spacing: 0;
+  border-radius: 3px;
+}
+.paysage-system .preview-caption {
+  display: none;
+}
+.paysage-system .library-game-body {
+  padding: 27px 28px 0;
+}
+.paysage-system .library-play,
+.paysage-system .game-place .library-play,
+.paysage-system .game-name .library-play {
+  background: var(--land-ink);
+}
+.paysage-system .library-details {
+  border-color: var(--land-line);
+}
+.paysage-system .library-details summary {
+  min-height: 46px;
+  color: var(--land-blue);
+  font-size: 13px;
+  font-weight: 600;
+}
+.paysage-system .library-details summary:hover {
+  background: #eaf4f8;
+}
+.paysage-system .library-overview {
+  margin: 32px 0 0;
+}
+.paysage-system .overview-main {
+  padding: 23px 28px;
+}
+.paysage-system .overview-icon {
+  background: #dcecf4;
+  color: var(--land-blue);
+  border-radius: 50%;
+}
+.paysage-system .overview-copy h2 {
+  color: var(--land-ink);
+  font-size: 17px;
+}
+.paysage-system .overview-copy p,
+.paysage-system .overview-progress > p {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .library-progress > div {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .library-progress b,
+.paysage-system .game-place .library-progress b,
+.paysage-system .game-name .library-progress b {
+  color: var(--land-blue);
+  font-size: 15px;
+}
+.paysage-system .library-progress progress,
+.paysage-system .library-progress progress::-webkit-progress-bar {
+  background: #dcecf4;
+}
+.paysage-system .library-progress progress::-webkit-progress-value,
+.paysage-system .library-progress progress::-moz-progress-bar,
+.paysage-system .game-place .library-progress progress::-webkit-progress-value,
+.paysage-system .game-name .library-progress progress::-webkit-progress-value {
+  background: var(--land-blue);
+}
+.paysage-system .library-stats dt,
+.paysage-system .library-stat-note {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .library-stats dd {
+  color: var(--land-ink);
+}
+
+/* Progress: numbers and activity provide the hierarchy. */
+.paysage-system .general-progress-hero {
+  border: 1px solid var(--land-line);
+  border-radius: 5px;
+  background: #dcecf4;
+  padding: 32px 36px;
+}
+.paysage-system .general-hero-copy h2,
+.paysage-system .general-more-stats h2,
+.paysage-system .recall-panel h2 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(27px, 3vw, 42px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+.paysage-system .general-hero-copy p,
+.paysage-system .general-more-stats > p,
+.paysage-system .progress-mode p {
+  color: var(--land-text);
+  font-size: 14px;
+}
+.paysage-system .general-hero-meter strong,
+.paysage-system .general-hero-meter strong span {
+  color: var(--land-ink);
+}
+.paysage-system .general-hero-meter > span {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .stat-card {
+  padding: 22px;
+}
+.paysage-system .icon-tile,
+.paysage-system .general-game-icon {
+  border-radius: 50%;
+  background: #dcecf4;
+  color: var(--land-blue);
+}
+.paysage-system .stat-label,
+.paysage-system .stat-card p {
+  color: var(--land-text);
+  font-size: 12px;
+}
+.paysage-system .stat-value {
+  color: var(--land-ink);
+  font-size: 29px;
+}
+.paysage-system .general-topic {
+  padding: 24px;
+}
+.paysage-system .general-game-card {
+  padding: 20px;
+}
+.paysage-system .general-game-heading h4 {
+  color: var(--land-ink);
+  font-size: 20px;
+}
+.paysage-system .general-game-card > p {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .general-progress .bar-track {
+  background: #e4f0f6;
+}
+.paysage-system .general-progress .bar-track i {
+  background: var(--land-sky);
+}
+.paysage-system .general-progress .bar-track i.today {
+  background: var(--land-blue);
+}
+.paysage-system .activity-chart small {
+  color: var(--land-text);
+  font-size: 12px;
+}
+
+/* Atlas and map: functional color is reserved for state. */
+.paysage-system .atlas-map-card,
+.paysage-system .game-card {
+  border: 1px solid var(--land-line);
+  border-radius: 5px;
+  box-shadow: none;
+}
+.paysage-system .map-wrap {
+  background: #e8f3f8;
+}
+.paysage-system .ocean-labels {
+  fill: #587e97;
+}
+.paysage-system .map-tag {
+  color: var(--land-text);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.paysage-system .map-tag-secondary {
+  color: var(--land-muted);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.paysage-system .map-tools button,
+.paysage-system .zoom-controls {
+  border: 1px solid var(--land-line);
+  border-radius: 4px;
+  background: white;
+  color: var(--land-ink);
+}
+.paysage-system .map-tools button,
+.paysage-system .zoom-controls button {
+  min-width: 38px;
+  min-height: 38px;
+}
+.paysage-system .zoom-controls span {
+  font-size: 11px;
+}
+.paysage-system .map-legend {
+  color: var(--land-ink);
+  font-size: 11px;
+}
+.paysage-system .legend-dot.unlocked {
+  background: #91bfd8;
+}
+.paysage-system .legend-dot.mastered {
+  background: #7fb2a0;
+}
+.paysage-system .legend-dot.locked {
+  background: #c7d8e1;
+}
+.paysage-system .atlas-detail {
+  background: white;
+}
+.paysage-system .atlas-detail h2 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+}
+.paysage-system .atlas-detail p,
+.paysage-system .atlas-detail dl {
+  color: var(--land-text);
+  font-size: 14px;
+}
+.paysage-system .atlas-globe {
+  background: #dcecf4;
+  color: var(--land-blue);
+}
+.paysage-system .catalog-heading p {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .catalog-country {
+  border-color: var(--land-line);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.paysage-system .catalog-country:hover {
+  background: #eff7fa;
+}
+.paysage-system .catalog-country.selected {
+  border-color: var(--land-blue);
+  box-shadow: inset 0 0 0 1px var(--land-blue);
+}
+.paysage-system .catalog-country h3 {
+  color: var(--land-ink);
+  font-size: 17px;
+}
+.paysage-system .catalog-country p,
+.paysage-system .catalog-country-bottom > span {
+  color: var(--land-text);
+  font-size: 12px;
+}
+.paysage-system .catalog-filters select,
+.paysage-system .search-field,
+.paysage-system .leaderboard-filters select,
+.paysage-system .leaderboard-search > span {
+  min-height: 44px;
+  border: 1px solid var(--land-line);
+  border-radius: 4px;
+  background-color: white;
+  color: var(--land-ink);
+}
+.paysage-system .search-field input,
+.paysage-system .leaderboard-search input {
+  color: var(--land-ink);
+  font-size: 14px;
+}
+.paysage-system .status-badge.mastered,
+.paysage-system .catalog-status.mastered {
+  color: var(--land-success);
+}
+.paysage-system .status-badge.learning,
+.paysage-system .catalog-status.learning {
+  color: var(--land-blue);
+}
+.paysage-system .status-badge,
+.paysage-system .catalog-status {
+  border-radius: 3px;
+}
+.paysage-system .mini-progress i {
+  background: #dcecf4;
+}
+.paysage-system .mini-progress .filled {
+  background: var(--land-blue);
+}
+.paysage-system .progress-mode p {
+  color: var(--land-text);
+  font-size: 14px;
+}
+.paysage-system .near-miss-total {
+  color: var(--land-warning);
+  font-size: 13px;
+}
+.paysage-system .country-progress .table-scroll table,
+.paysage-system .country-progress .table-scroll th,
+.paysage-system .country-progress .table-scroll td {
+  color: var(--land-ink);
+}
+.paysage-system .country-progress .table-scroll thead {
+  background: #eaf4f8;
+}
+.paysage-system .recall-panel p {
+  color: var(--land-text);
+  font-size: 14px;
+}
+
+/* Leaderboard, forms and messages. */
+.paysage-system .leaderboard-personal {
+  border: 1px solid var(--land-line);
+  border-radius: 5px;
+  background: #dcecf4;
+}
+.paysage-system .leaderboard-personal-icon {
+  border-radius: 50%;
+  color: var(--land-blue);
+}
+.paysage-system .leaderboard-personal-copy b,
+.paysage-system .leaderboard-table-heading h2 {
+  color: var(--land-ink);
+}
+.paysage-system .leaderboard-personal-copy > span,
+.paysage-system .leaderboard-table-heading p,
+.paysage-system .leaderboard-status,
+.paysage-system .leaderboard-footnote {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .leaderboard-filters {
+  border-color: var(--land-line);
+}
+.paysage-system .leaderboard-filters label {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .leaderboard-table thead,
+.paysage-system .leaderboard-table thead th {
+  background: #eaf4f8;
+  color: var(--land-ink);
+}
+.paysage-system .leaderboard-table tbody td,
+.paysage-system .leaderboard-table tbody th {
+  border-color: var(--land-line);
+}
+.paysage-system .leaderboard-table .leaderboard-self {
+  background: #e5f3ef;
+}
+.paysage-system .leaderboard-table td.leaderboard-xp {
+  color: var(--land-blue);
+}
+.paysage-system .leaderboard-avatar {
+  background: #dcecf4;
+  color: var(--land-ink);
+}
+.paysage-system .leaderboard-refresh,
+.paysage-system .leaderboard-pagination button {
+  border-color: var(--land-line);
+  border-radius: 4px;
+  color: var(--land-blue);
+}
+.paysage-system .leaderboard-empty {
+  color: var(--land-text);
+}
+.paysage-system .leaderboard-empty h3 {
+  color: var(--land-ink);
+}
+.paysage-system .leaderboard-footnote {
+  max-width: none;
+  margin: 20px 0 0;
+  padding: 0;
+  color: var(--land-text);
+  border-top: 1px solid var(--land-line);
+  font-size: 13px;
+}
+.paysage-system .leaderboard-footnote summary {
+  width: fit-content;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--land-blue);
+  font-weight: 600;
+  cursor: pointer;
+}
+.paysage-system .leaderboard-footnote p {
+  max-width: 78ch;
+  margin: 0 0 15px;
+}
+.paysage-system .leaderboard-name-form,
+.paysage-system .account-pseudo {
+  border-color: var(--land-line);
+  border-radius: 4px;
+}
+.paysage-system .modal {
+  border: 1px solid var(--land-line);
+  border-radius: 5px;
+  color: var(--land-ink);
+  background: var(--land-paper);
+  box-shadow: 0 20px 70px #173b5833;
+}
+.paysage-system .modal::backdrop {
+  background: #173b5880;
+}
+.paysage-system .modal-head h2 {
+  color: var(--land-ink);
+  font-family: Fraunces, Georgia, serif;
+  font-size: 28px;
+}
+.paysage-system .icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  background: #dcecf4;
+  color: var(--land-ink);
+}
+.paysage-system .account-form label,
+.paysage-system .account-pseudo h3,
+.paysage-system .rename-form label {
+  color: var(--land-ink);
+  font-size: 14px;
+}
+.paysage-system .account-form input,
+.paysage-system .rename-form input,
+.paysage-system .leaderboard-name-form input {
+  min-height: 46px;
+  border: 1px solid var(--land-line);
+  border-radius: 4px;
+  background: white;
+  color: var(--land-ink);
+  font-size: 15px;
+}
+.paysage-system .account-form input:focus-visible {
+  outline-color: #b48400;
+}
+.paysage-system .account-form small,
+.paysage-system .account-separator,
+.paysage-system .account-pseudo > p {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .google-sign-in {
+  border-color: var(--land-line);
+  border-radius: 4px;
+  color: var(--land-ink);
+}
+.paysage-system .google-sign-in:hover {
+  background: #dcecf4;
+}
+.paysage-system .account-sync,
+.paysage-system .account-message {
+  background: #dcecf4;
+  color: var(--land-ink);
+  border-radius: 4px;
+}
+.paysage-system .account-notice {
+  background: #fff1d0;
+  color: var(--land-warning);
+  border-radius: 4px;
+}
+.paysage-system .toast {
+  border: 1px solid var(--land-yellow);
+  border-radius: 4px;
+  background: var(--land-ink);
+  color: white;
+  font-size: 14px;
+  box-shadow: 0 8px 24px #173b5833;
+}
+.paysage-system .toast svg {
+  color: var(--land-yellow);
+}
+.paysage-system .storage-alert {
+  border-radius: 4px;
+  background: #fff1d0;
+  color: var(--land-warning);
+  font-size: 13px;
+}
+.paysage-system .method-steps h3,
+.paysage-system .sources-box h3 {
+  color: var(--land-ink);
+  font-size: 15px;
+}
+.paysage-system .method-steps p,
+.paysage-system .sources-box p {
+  color: var(--land-text);
+  font-size: 13px;
+}
+.paysage-system .method-steps > div > span {
+  background: #dcecf4;
+  color: var(--land-ink);
+}
+.paysage-system .sources-box {
+  background: #eaf4f8;
+  border-radius: 4px;
+}
+
+/* Focus mode retains its map-first layout and clear response states. */
+.paysage-system.is-focused,
+.paysage-system:fullscreen {
+  background: #e8f3f8;
+}
+.paysage-system.is-focused .game-card {
+  border: 0;
+  border-radius: 0;
+}
+.paysage-system.is-focused .map-wrap {
+  background: #e8f3f8;
+}
+.paysage-system .focus-question {
+  border: 1px solid var(--land-line);
+  border-radius: 6px;
+  background: #f7fbfcf2;
+  box-shadow: 0 12px 36px #173b5824;
+}
+.paysage-system .focus-country > .flag {
+  border: 1px solid var(--land-line);
+  border-radius: 4px;
+  background: white;
+}
+.paysage-system .focus-prompt-label,
+.paysage-system .focus-question-count > span {
+  color: var(--land-text);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.paysage-system .focus-country h2 {
+  color: var(--land-ink);
+  font-family: Manrope, sans-serif;
+}
+.paysage-system .naming-symbol {
+  border: 1px solid var(--land-line);
+  border-radius: 4px;
+  background: #dcecf4;
+  color: var(--land-blue);
+}
+.paysage-system .naming-form label,
+.paysage-system .naming-form-footer p {
+  color: var(--land-text);
+  font-size: 12px;
+}
+.paysage-system .naming-input-row input {
+  border-color: var(--land-line);
+  border-radius: 4px;
+  background: white;
+  color: var(--land-ink);
+}
+.paysage-system .naming-input-row input::placeholder {
+  color: var(--land-muted);
+}
+.paysage-system .naming-map .country-path:hover,
+.paysage-system .naming-map .country-path:focus-visible {
+  fill: #c7d8e1;
+  stroke: white;
+}
+.paysage-system .naming-map [data-naming-target="true"],
+.paysage-system .naming-map [data-naming-target="true"]:hover {
+  fill: #2e6e9f;
+}
+.paysage-system .focus-question-count b {
+  color: var(--land-blue);
+}
+.paysage-system .focus-question-actions,
+.paysage-system .stable-question .focus-feedback {
+  border-color: var(--land-line);
+}
+.paysage-system .focus-reason,
+.paysage-system .focus-hint,
+.paysage-system .focus-skip,
+.paysage-system .focus-memory {
+  color: var(--land-text);
+  font-size: 12px;
+}
+.paysage-system .focus-hint:hover,
+.paysage-system .focus-skip:hover {
+  background: #dcecf4;
+}
+.paysage-system .focus-result.is-correct {
+  color: var(--land-success);
+}
+.paysage-system .focus-result.is-incorrect {
+  color: var(--land-error);
+}
+.paysage-system .stable-question .focus-feedback {
+  height: auto;
+  min-height: 88px;
+  grid-template-rows: auto auto auto;
+  row-gap: 5px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.paysage-system .stable-question .focus-result b,
+.paysage-system .stable-question .focus-feedback > p {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+.paysage-system .stable-question .focus-feedback > p {
+  color: var(--land-text);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.paysage-system .focus-fullscreen,
+.paysage-system .focus-exit {
+  border-color: var(--land-line);
+  border-radius: 4px;
+  color: var(--land-ink);
+  background: #f7fbfcf2;
+  font-size: 12px;
+}
+.paysage-system .focus-fullscreen:hover,
+.paysage-system .focus-exit:hover {
+  background: #dcecf4;
+}
+.paysage-system .unlock-progress {
+  background: #dcecf4;
+}
+.paysage-system .unlock-progress > span {
+  background: var(--land-blue);
+}
+.paysage-system .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.paysage-system .answer-confetti span:nth-child(2),
+.paysage-system .answer-confetti span:nth-child(5) {
+  background: #91bfd8;
+}
+.paysage-system .answer-confetti span:nth-child(3),
+.paysage-system .answer-confetti span:nth-child(6) {
+  background: #e9c765;
+}
+
+@media (max-width: 1200px) {
+  .paysage-system:not(.home-landing-shell) main {
+    padding: 34px 30px 0;
+  }
+}
+@media (max-width: 760px) {
+  .paysage-system .stable-question .focus-feedback {
+    min-height: 126px;
+    row-gap: 7px;
+  }
+  .paysage-system .sidebar {
+    border: 0;
+    border-top: 1px solid var(--land-line);
+    background: #f7fbfcf5;
+  }
+  .paysage-system .nav-item {
+    min-height: 52px;
+    font-size: 10px;
+  }
+  .paysage-system .nav-item > span {
+    font-size: 11px;
+  }
+  .paysage-system .topbar {
+    background: var(--land-paper);
+  }
+  .paysage-system:not(.home-landing-shell) main {
+    padding: 30px 20px 0;
+  }
+  .paysage-system .library-heading,
+  .paysage-system .page-heading,
+  .paysage-system .leaderboard-hero {
+    margin-bottom: 25px;
+  }
+  .paysage-system:not(.home-landing-shell) h1,
+  .paysage-system .library-heading h1,
+  .paysage-system .leaderboard-hero h1 {
+    font-size: clamp(39px, 10vw, 55px);
+  }
+  .paysage-system .library-heading p,
+  .paysage-system .page-heading p,
+  .paysage-system .leaderboard-hero p {
+    font-size: 15px;
+  }
+  .paysage-system .library-collection-card {
+    grid-template-columns: 1fr;
+  }
+  .paysage-system .collection-art {
+    min-height: 220px;
+  }
+  .paysage-system .collection-art::before {
+    height: 195px;
+  }
+  .paysage-system .collection-art::after {
+    height: 130px;
+  }
+  .paysage-system .collection-body {
+    padding: 25px;
+  }
+  .paysage-system .library-game-grid {
+    grid-template-columns: 1fr;
+  }
+  .paysage-system .game-preview {
+    height: 175px;
+  }
+  .paysage-system .overview-main {
+    padding: 20px;
+  }
+  .paysage-system .library-details summary {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .paysage-system .general-progress-hero {
+    padding: 25px;
+  }
+  .paysage-system .stat-card {
+    padding: 18px;
+  }
+  .paysage-system .leaderboard-personal {
+    padding: 18px;
+  }
+  .paysage-system .map-legend {
+    font-size: 10px;
+  }
+  .paysage-system .modal {
+    padding: 22px;
+  }
+  .paysage-system .focus-question {
+    border-radius: 5px;
+  }
+  .paysage-system .focus-reason,
+  .paysage-system .focus-hint,
+  .paysage-system .focus-skip {
+    font-size: 11px;
+  }
+  .paysage-system .toast {
+    left: 50%;
+    bottom: 80px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paysage-system *,
+  .paysage-system *::before,
+  .paysage-system *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

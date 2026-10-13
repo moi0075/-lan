@@ -6,7 +6,6 @@ import {
   Keyboard,
   Layers3,
   MapPin,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import {
@@ -24,6 +23,7 @@ import type { Profile } from "../engine/storage";
 import type { AppRoute } from "../useAppNavigation";
 import worldShapes from "../data/map.json";
 import BrandMark from "./BrandMark";
+import PaysageHome from "./PaysageHome";
 
 const number = new Intl.NumberFormat("fr", { maximumFractionDigits: 1 });
 
@@ -90,7 +90,7 @@ function GamePreview({ mode }: { mode: LearningGame["mode"] }) {
         ))}
       </svg>
       <span className="preview-direction">
-        {mode === "place" ? "UN NOM → UNE POSITION" : "UNE POSITION → UN NOM"}
+        {mode === "place" ? "Un nom → un lieu" : "Un lieu → un nom"}
       </span>
       <div className="preview-symbol">
         {mode === "place" ? (
@@ -113,6 +113,10 @@ interface Props {
   onPlay: (game: LearningGame) => void;
   onStats: (game: LearningGame) => void;
   onOpenAtlas: () => void;
+  onProgress: () => void;
+  onLeaderboard: () => void;
+  onAccount: () => void;
+  hasAccount: boolean;
 }
 
 export default function LearningLibrary({
@@ -122,6 +126,10 @@ export default function LearningLibrary({
   onPlay,
   onStats,
   onOpenAtlas,
+  onProgress,
+  onLeaderboard,
+  onAccount,
+  hasAccount,
 }: Props) {
   const theme = learningThemes.find((item) => item.id === route.themeId);
   const topic = theme?.topics.find((item) => item.id === route.topicId);
@@ -133,9 +141,20 @@ export default function LearningLibrary({
       })),
     );
   const overall = summarize(allGames);
-  const collection = topic
-    ? topic.games
-    : theme?.topics.flatMap((item) => item.games);
+  if (!theme) {
+    return (
+      <PaysageHome
+        summary={overall}
+        hasAccount={hasAccount}
+        onBrowse={onBrowse}
+        onPlay={onPlay}
+        onOpenAtlas={onOpenAtlas}
+        onProgress={onProgress}
+        onLeaderboard={onLeaderboard}
+        onAccount={onAccount}
+      />
+    );
+  }
 
   return (
     <div className="learning-library">
@@ -176,44 +195,6 @@ export default function LearningLibrary({
           )}
         </span>
       </header>
-
-      <section className="library-overview" aria-label="Progression générale">
-        <div className="overview-main">
-          <div className="overview-copy">
-            <span className="overview-icon">
-              <TrendingUp size={21} />
-            </span>
-            <div>
-              <h2>Votre progression générale</h2>
-              <p>Tous vos jeux, un chemin qui se construit.</p>
-            </div>
-          </div>
-          <div className="overview-progress">
-            <ProgressBar
-              summary={overall}
-              label="Maîtrise de l’ensemble des jeux"
-            />
-            <p>
-              <b>
-                {overall.mastered} / {overall.total}
-              </b>{" "}
-              connaissances acquises · {allGames.length} jeux
-            </p>
-          </div>
-        </div>
-        <details className="library-details">
-          <summary>
-            <span>Voir les statistiques générales</span>
-            <ChevronDown size={16} />
-          </summary>
-          <Stats summary={overall} />
-          <p className="library-stat-note">
-            Chaque connaissance est comptée dans son jeu : placer un pays et le
-            nommer sont deux acquis distincts. Une erreur remet l’acquis
-            concerné à consolider. La précision porte sur toutes vos réponses.
-          </p>
-        </details>
-      </section>
 
       <div className="library-section-title">
         <h2>
@@ -351,21 +332,43 @@ export default function LearningLibrary({
         </div>
       )}
 
-      <div className="library-learning-note">
-        <Sparkles size={20} />
-        <p>
-          <b>Un parcours qui s’adapte à vous.</b> Vos erreurs reviennent plus
-          souvent, vos acquis sont révisés et de nouvelles connaissances se
-          débloquent à votre rythme.
-        </p>
-      </div>
-      {collection && (
-        <p className="collection-total">
-          {summarize(collection).mastered} connaissances acquises pour «{" "}
-          {topic?.title || theme?.title} ». Vos progrès sont enregistrés pour{" "}
-          {profile.name}.
-        </p>
-      )}
+      <section className="library-overview" aria-label="Progression générale">
+        <div className="overview-main">
+          <div className="overview-copy">
+            <span className="overview-icon">
+              <TrendingUp size={21} />
+            </span>
+            <div>
+              <h2>Votre progression générale</h2>
+              <p>Tous vos jeux, un chemin qui se construit.</p>
+            </div>
+          </div>
+          <div className="overview-progress">
+            <ProgressBar
+              summary={overall}
+              label="Maîtrise de l’ensemble des jeux"
+            />
+            <p>
+              <b>
+                {overall.mastered} / {overall.total}
+              </b>{" "}
+              connaissances acquises · {allGames.length} jeux
+            </p>
+          </div>
+        </div>
+        <details className="library-details">
+          <summary>
+            <span>Voir les statistiques générales</span>
+            <ChevronDown size={16} />
+          </summary>
+          <Stats summary={overall} />
+          <p className="library-stat-note">
+            Chaque connaissance est comptée dans son jeu : placer un pays et le
+            nommer sont deux acquis distincts. Une erreur remet l’acquis
+            concerné à consolider. La précision porte sur toutes vos réponses.
+          </p>
+        </details>
+      </section>
     </div>
   );
 }

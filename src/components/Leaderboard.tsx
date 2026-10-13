@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Search,
   Trophy,
-  Users,
 } from "lucide-react";
 import { learningThemes } from "../catalog/learningCatalog";
 import { useAccount } from "../auth/AccountContext";
@@ -187,18 +186,6 @@ export default function Leaderboard({
             Retrouvez les joueurs d’Élan et comparez vos avancées dans les
             savoirs qui vous intéressent.
           </p>
-          <div className="leaderboard-hero-tags">
-            <span>
-              <Users size={15} /> Tous les joueurs
-            </span>
-            <span>
-              <Trophy size={15} /> Classement général
-            </span>
-          </div>
-        </div>
-        <div className="leaderboard-emblem" aria-hidden="true">
-          <Trophy size={44} strokeWidth={1.5} />
-          <span>Un pas de plus.</span>
         </div>
       </div>
 
@@ -255,7 +242,7 @@ export default function Leaderboard({
               </span>
             </div>
             <button className="button-primary" onClick={onSignIn}>
-              Se connecter avec Google <ArrowRight size={16} />
+              Se connecter <ArrowRight size={16} />
             </button>
           </>
         )}
@@ -538,12 +525,15 @@ export default function Leaderboard({
           </div>
         )}
       </div>
-      <p className="leaderboard-footnote">
-        Un compte, une place : seul le profil avec le plus de XP est retenu. Les
-        filtres affichent ses résultats dans les jeux choisis. Les acquis sont
-        comptés séparément pour chaque jeu ; la précision mesure les bonnes
-        réponses depuis le début.
-      </p>
+      <details className="leaderboard-footnote">
+        <summary>Comprendre le classement</summary>
+        <p>
+          Un compte, une place : seul le profil avec le plus de XP est retenu.
+          Les filtres affichent ses résultats dans les jeux choisis. Les acquis
+          sont comptés séparément pour chaque jeu ; la précision mesure les
+          bonnes réponses depuis le début.
+        </p>
+      </details>
     </section>
   );
 }

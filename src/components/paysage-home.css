@@ -1,0 +1,431 @@
+/* The selected Paysage home. Working screens use paysage-system.css. */
+.home-landing-shell .sidebar,
+.home-landing-shell .topbar,
+.home-landing-shell .page-footer {
+  display: none;
+}
+.home-landing-shell .workspace {
+  margin-left: 0;
+}
+.home-landing-shell .workspace > main {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.home-paysage {
+  min-height: 100vh;
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+}
+.home-paysage *,
+.home-paysage *::before,
+.home-paysage *::after {
+  box-sizing: border-box;
+}
+.home-paysage h1,
+.home-paysage h2,
+.home-paysage p {
+  margin: 0;
+}
+.home-paysage button {
+  font: inherit;
+  text-align: left;
+  border: 0;
+  cursor: pointer;
+  transition: none;
+}
+.home-paysage button:focus-visible {
+  outline: 3px solid var(--home-focus, #b8d5ff);
+  outline-offset: 4px;
+}
+.home-world {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.home-world path {
+  vector-effect: non-scaling-stroke;
+}
+.home-site-header {
+  min-height: 89px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  padding: 19px clamp(24px, 4.4vw, 72px);
+}
+.home-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  font-family: Manrope, sans-serif;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -1.8px;
+  line-height: 1;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+.home-site-brand svg {
+  flex: none;
+}
+.home-site-brand-copy {
+  display: grid;
+  gap: 4px;
+}
+.home-site-brand-copy small {
+  font-family: "DM Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.home-site-header nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(15px, 2vw, 36px);
+  flex-wrap: wrap;
+}
+.home-site-header nav button {
+  padding: 8px 0;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+.home-site-header nav button:hover {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.home-knowledge {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+.home-knowledge strong {
+  font-size: 19px;
+  line-height: 1.2;
+}
+.home-knowledge span {
+  font-size: 12px;
+}
+.home-knowledge progress {
+  width: 100%;
+  height: 5px;
+  margin-top: 11px;
+  overflow: hidden;
+  border: 0;
+  appearance: none;
+}
+.home-knowledge progress::-webkit-progress-bar {
+  background: var(--meter-track, #ffffff55);
+}
+.home-knowledge progress::-webkit-progress-value {
+  background: var(--meter-value, currentColor);
+}
+.home-knowledge progress::-moz-progress-bar {
+  background: var(--meter-value, currentColor);
+}
+
+/* Paysage — knowledge imagined as a layered, paper-cut landscape. */
+.home-paysage {
+  --home-focus: #173b58;
+  --meter-track: #aec9d8;
+  --meter-value: #416e8b;
+  background: #f7fbfc;
+  color: #173b58;
+  font-family: "IBM Plex Sans", sans-serif;
+}
+.paysage-page {
+  min-height: 100vh;
+  overflow: hidden;
+}
+.home-paysage .home-site-header {
+  position: relative;
+  z-index: 3;
+  background: #8bb8d4;
+  color: #173b58;
+}
+.home-paysage .home-site-brand svg {
+  color: #fff0a0;
+}
+.paysage-hero {
+  position: relative;
+  min-height: clamp(650px, calc(100svh - 144px), 870px);
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(180deg, #8bb8d4 0%, #b9d9eb 59%, #d5e9f2 100%);
+}
+.paysage-hero h1 {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 17px 20px 0;
+  color: #fff;
+  font-family: Manrope, sans-serif;
+  font-size: clamp(70px, 13.1vw, 220px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.085em;
+  text-align: center;
+  text-shadow: 0 5px 18px #365b7680;
+  white-space: nowrap;
+}
+.paysage-hero-line {
+  position: absolute;
+  z-index: 3;
+  top: 32%;
+  left: 50%;
+  width: min(90%, 690px);
+  color: #fff0a0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(31px, 4.2vw, 61px);
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.12;
+  text-align: center;
+  text-shadow: 0 3px 9px #3f58708c;
+  transform: translateX(-50%);
+}
+.paysage-landscape {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 77%;
+}
+.home-paysage .paysage-disc {
+  position: absolute;
+  z-index: 4;
+  top: 47%;
+  display: grid;
+  place-items: center;
+  width: clamp(115px, 10vw, 152px);
+  aspect-ratio: 1;
+  padding: 19px;
+  border-radius: 50%;
+  box-shadow: 0 11px 20px #52718b34;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+.home-paysage .paysage-disc:hover {
+  transform: translateY(-5px);
+}
+.paysage-disc-theme {
+  left: 13%;
+  background: #f7fbfc;
+  color: #315976;
+}
+.paysage-disc-progress {
+  right: 13%;
+  background: #587997;
+  color: #fff;
+}
+.paysage-hero-caption {
+  position: absolute;
+  z-index: 3;
+  right: 30px;
+  bottom: 17px;
+  color: #2b536d;
+  font-size: 11px;
+  font-weight: 600;
+}
+.paysage-theme {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  min-height: 440px;
+  background: #f7fbfc;
+}
+.paysage-theme-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(42px, 5vw, 86px) clamp(26px, 6vw, 100px);
+}
+.paysage-theme-intro > span {
+  color: #496f88;
+  font-size: 13px;
+  font-weight: 600;
+}
+.paysage-theme-intro h2 {
+  max-width: 590px;
+  margin-top: 19px;
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(40px, 4.3vw, 67px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+.paysage-theme-intro p {
+  max-width: 490px;
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.paysage-theme-intro button {
+  margin-top: 29px;
+  padding: 12px 0;
+  border-bottom: 2px solid currentColor;
+  background: transparent;
+  color: #245a7d;
+  font-weight: 700;
+}
+.paysage-theme-intro button:hover {
+  color: #12364f;
+}
+.paysage-theme-map {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 35px;
+  background: #dcecf4;
+}
+.paysage-theme-map .home-world {
+  max-width: 800px;
+}
+.paysage-theme-map .home-world path {
+  fill: #618ba7;
+  stroke: #dcecf4;
+  stroke-width: 0.75;
+}
+.paysage-activities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 2px solid #416e8b;
+  border-bottom: 2px solid #416e8b;
+  background: #eaf3f7;
+}
+.paysage-activities button {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-height: 165px;
+  padding: 30px clamp(24px, 4vw, 65px);
+  background: transparent;
+  color: #173b58;
+}
+.paysage-activities button + button {
+  border-left: 2px solid #416e8b;
+}
+.paysage-activities button:hover {
+  background: #dcecf4;
+}
+.paysage-activities span,
+.paysage-activities small {
+  font-size: 13px;
+  font-weight: 400;
+}
+.paysage-activities strong {
+  font-family: Fraunces, Georgia, serif;
+  font-size: clamp(24px, 2.5vw, 36px);
+  font-weight: 600;
+}
+.paysage-progress {
+  padding: 33px clamp(26px, 6vw, 100px) 45px;
+  background: #f7fbfc;
+}
+.paysage-progress .home-knowledge {
+  max-width: 320px;
+}
+
+@media (max-width: 760px) {
+  .home-site-header {
+    min-height: 0;
+    display: block;
+    padding: 20px 20px 17px;
+  }
+  .home-site-brand {
+    font-size: 26px;
+  }
+  .home-site-brand svg {
+    width: 25px;
+    height: 25px;
+  }
+  .home-site-header nav {
+    justify-content: flex-start;
+    gap: 10px 20px;
+    margin-top: 18px;
+  }
+  .home-site-header nav button {
+    font-size: 13px;
+  }
+  .paysage-hero {
+    min-height: 590px;
+  }
+  .paysage-hero h1 {
+    padding: 25px 10px 0;
+    font-size: clamp(43px, 12vw, 89px);
+  }
+  .paysage-hero-line {
+    top: 23%;
+    width: 85%;
+    font-size: clamp(28px, 7vw, 43px);
+  }
+  .paysage-landscape {
+    left: -38%;
+    width: 176%;
+    height: 72%;
+  }
+  .home-paysage .paysage-disc {
+    top: 53%;
+    width: 110px;
+    font-size: 13px;
+  }
+  .paysage-disc-theme {
+    left: 6%;
+  }
+  .paysage-disc-progress {
+    right: 6%;
+  }
+  .paysage-hero-caption {
+    right: 17px;
+    bottom: 11px;
+    font-size: 10px;
+  }
+  .paysage-theme {
+    grid-template-columns: 1fr;
+  }
+  .paysage-theme-intro {
+    padding: 44px 25px 41px;
+  }
+  .paysage-theme-intro h2 {
+    font-size: clamp(40px, 10vw, 60px);
+  }
+  .paysage-theme-intro p {
+    font-size: 15px;
+  }
+  .paysage-theme-map {
+    min-height: 260px;
+    padding: 22px;
+  }
+  .paysage-activities {
+    grid-template-columns: 1fr;
+  }
+  .paysage-activities button {
+    min-height: 132px;
+    padding: 21px 25px;
+  }
+  .paysage-activities button + button {
+    border-left: 0;
+    border-top: 2px solid #416e8b;
+  }
+  .paysage-progress {
+    padding: 31px 25px 41px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-paysage *,
+  .home-paysage *::before,
+  .home-paysage *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -9,8 +9,14 @@ import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-600.css";
 import "@fontsource/manrope/latin-700.css";
 import "@fontsource/manrope/latin-800.css";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
+import "@fontsource/fraunces/latin-600.css";
+import "@fontsource/fraunces/latin-600-italic.css";
 import AccountApp from "./auth/AccountApp";
 import "./styles.css";
+import "./paysage-system.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AccountApp />

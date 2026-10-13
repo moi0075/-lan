@@ -135,7 +135,7 @@ export default function NamingQuestion({
           }}
         >
           <label htmlFor="country-name">
-            Nommez le pays surligné en violet.
+            Nommez le pays mis en évidence sur la carte.
           </label>
           <div className="naming-input-row">
             <input

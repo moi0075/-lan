@@ -113,12 +113,12 @@ export default function WorldMap({
   }, [selectedId, explore]);
   // During play every country has the same fill, regardless of learning status or answer.
   const color = (id?: string) => {
-    if (namingTargetId && id === namingTargetId) return "#9279df";
-    if (!explore) return "#d5dfdd";
-    if (id === selectedId) return "#7962d5";
-    if (id && isMastered(learning.memory[id])) return "#a1cbb7";
-    if (id && unlocked.has(id)) return "#bca9e7";
-    return "#d5dfdd";
+    if (namingTargetId && id === namingTargetId) return "#2e6e9f";
+    if (!explore) return "#c7d8e1";
+    if (id === selectedId) return "#e9c765";
+    if (id && isMastered(learning.memory[id])) return "#7fb2a0";
+    if (id && unlocked.has(id)) return "#91bfd8";
+    return "#c7d8e1";
   };
   const marked = (id?: string) =>
     !!id &&
@@ -171,7 +171,7 @@ export default function WorldMap({
         className={`${active ? "interaction-outline" : ""} ${outlineClass(id)}`}
         d={shape.d || ""}
         fill="none"
-        stroke={namingTargetId && !feedback ? "#6246b5" : "#58696d"}
+        stroke={namingTargetId && !feedback ? "#173b58" : "#48677c"}
         strokeWidth="2"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -206,7 +206,7 @@ export default function WorldMap({
         role="group"
         aria-label={
           namingTargetId
-            ? "Carte du monde interactive. Nommez le pays surligné en violet. Glissez pour déplacer la carte, pincez pour zoomer."
+            ? "Carte du monde interactive. Nommez le pays mis en évidence. Glissez pour déplacer la carte, pincez pour zoomer."
             : "Carte du monde interactive. Cliquez sur un pays. Glissez avec deux doigts pour déplacer la carte, pincez pour zoomer. À la souris, faites glisser ou utilisez Ctrl + molette et les boutons de zoom."
         }
         {...pointerHandlers}
@@ -228,7 +228,7 @@ export default function WorldMap({
             height="24"
             patternUnits="userSpaceOnUse"
           >
-            <circle cx="1" cy="1" r="0.7" fill="#cbd7d8" opacity=".45" />
+            <circle cx="1" cy="1" r="0.7" fill="#bad4e3" opacity=".45" />
           </pattern>
         </defs>
         <rect width="1000" height="510" fill="url(#map-grid)" />
@@ -260,7 +260,7 @@ export default function WorldMap({
                 d={s.d || ""}
                 className={`country-path ${active ? "is-unlocked" : ""}`}
                 fill={color(c?.id)}
-                stroke="#f6f8f8"
+                stroke="#f7fbfc"
                 strokeWidth={0.8 / view.k ** 0.35}
                 role={namingTargetId ? "img" : "button"}
                 tabIndex={
@@ -312,7 +312,7 @@ export default function WorldMap({
                 r={3.4 / Math.sqrt(view.k)}
                 className="country-marker"
                 fill={color(c.id)}
-                stroke={marked(c.id) ? "#58696d" : "#fff"}
+                stroke={marked(c.id) ? "#173b58" : "#f7fbfc"}
                 strokeWidth={(marked(c.id) ? 2 : 1) / view.k}
                 data-marker={c.id}
                 role={namingTargetId ? "img" : "button"}
@@ -367,11 +367,11 @@ export default function WorldMap({
                   pointerEvents="none"
                   aria-hidden="true"
                 >
-                  <circle r="11" fill="#fff" stroke="#6246b5" strokeWidth="2" />
+                  <circle r="11" fill="#fff" stroke="#173b58" strokeWidth="2" />
                   <text
                     textAnchor="middle"
                     dy="4"
-                    fill="#6246b5"
+                    fill="#173b58"
                     fontSize="13"
                     fontWeight="700"
                   >
@@ -432,10 +432,10 @@ export default function WorldMap({
                   <circle
                     r="11"
                     fill="none"
-                    stroke={feedback ? "#43555b" : "#7962d5"}
+                    stroke={feedback ? "#48677c" : "#173b58"}
                     strokeWidth="2"
                   />
-                  <circle r="4" fill={feedback ? "#43555b" : "#7962d5"} />
+                  <circle r="4" fill={feedback ? "#48677c" : "#173b58"} />
                   {!mobile && hover === c.name && (
                     <>
                       <rect
@@ -510,7 +510,7 @@ export default function WorldMap({
               {feedback
                 ? null
                 : namingTargetId
-                  ? "Pays à nommer · surligné en violet"
+                  ? "Pays à nommer · mis en évidence"
                   : hintIds.length
                     ? "5 zones proposées · une seule bonne réponse"
                     : null}
