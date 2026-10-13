@@ -1112,3 +1112,11 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* The game map fills the viewport, even when page gutters change by breakpoint. */
+.paysage-system.is-focused main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
